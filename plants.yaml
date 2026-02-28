@@ -1,0 +1,22 @@
+basil:
+  fertilizer_interval_days: 14
+  sun_hours: 6
+  water_interval_days: 1
+  water_ml: 150
+chili:
+  fertilizer_interval_days: 10
+  min_moisture_level: 30.0
+  sun_hours: 5
+  water_interval_days: 2
+  water_ml: 200
+monstera:
+  fertilizer_interval_days: 30
+  sun_hours: 3
+  water_interval_days: 7
+  water_ml: 500
+tomato:
+  fertilizer_interval_days: 7
+  min_moisture_level: 40.0
+  sun_hours: 6
+  water_interval_days: 1
+  water_ml: 250
