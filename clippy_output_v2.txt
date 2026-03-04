@@ -1,0 +1,2237 @@
+﻿cargo :     Checking AgroCLI v1.2.0 
+(C:\Users\setia\Downloads\AgroCLI)
+At line:1 char:1
++ cargo clippy --all-targets 
+--all-features -- -D warnings 2>&1 | Out-F 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (    Checking Ag...nloads\AgroCLI):S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+error: lint group `nonstandard_style` has 
+the same priority (0) as a lint
+  --> Cargo.toml:33:1
+   |
+32 | future-incompatible = "warn"
+   | ------------------- has the same 
+priority as this lint
+33 | nonstandard_style = "deny"
+   | ^^^^^^^^^^^^^^^^^   ------ has an 
+implicit priority of 0
+   |
+   = note: the order of the lints in the 
+table is ignored by Cargo
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#lint_groups_priority
+   = note: `-D 
+clippy::lint-groups-priority` implied by 
+`-D clippy::all`
+   = help: to override `-D clippy::all` 
+add 
+`#[allow(clippy::lint_groups_priority)]`
+help: to have lints override the group set 
+`nonstandard_style` to a lower priority
+   |
+33 - nonstandard_style = "deny"
+33 + nonstandard_style = { level = "deny", 
+priority = -1 }
+   |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:225:9
+    |
+225 |         println!("  Γöé {:<58}Γöé", 
+line);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+    = note: `-D 
+clippy::uninlined-format-args` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::uninlined_format_args)]`
+help: change this to
+    |
+225 -         println!("  Γöé {:<58}Γöé", 
+line);
+225 +         println!("  Γöé 
+{line:<58}Γöé");
+    |
+
+error: this function has too many lines 
+(102/100)
+   --> src\ai\mod.rs:260:1
+    |
+260 | / async fn process_gemini_command(
+261 | |     client: &reqwest::Client,
+262 | |     api_key: &str,
+263 | |     history: &mut Vec<Content>,
+...   |
+266 | |     provider: &AiProvider,
+267 | | ) -> Result<String> {
+    | |___________________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#too_many_lines
+    = note: `-D clippy::too-many-lines` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::too_many_lines)]`
+
+error: these match arms have identical 
+bodies
+   --> src\ai\mod.rs:274:9
+    |
+274 |         AiProvider::GeminiFlash => 
+"gemini-1.5-flash",
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+275 |         AiProvider::GeminiPro => 
+"gemini-1.5-pro",
+276 |         _ => "gemini-1.5-flash",
+    |         ^^^^^^^^^^^^^^^^^^^^^^^ the 
+wildcard arm
+    |
+    = help: if this is unintentional make 
+the arms return different values
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#match_same_arms
+    = note: `-D clippy::match-same-arms` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::match_same_arms)]`
+help: otherwise remove the non-wildcard arm
+    |
+274 -         AiProvider::GeminiFlash => 
+"gemini-1.5-flash",
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:279:15
+    |
+279 |       let url = format!(
+    |  _______________^
+280 | |         "https://generativelanguage
+.googleapis.com/v1beta/models/{}:generateCo
+ntent?key={}",
+281 | |         model, api_key
+282 | |     );
+    | |_____^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:321:20
+    |
+321 |           return Err(anyhow::anyhow!(
+    |  ____________________^
+322 | |             "Gemini API Error {}: 
+{}",
+323 | |             status,
+324 | |             body_text
+325 | |         ));
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:331:13
+    |
+331 |             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {}", e);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+331 -             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {}", e);
+331 +             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {e}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:332:13
+    |
+332 |             println!("≡ƒôä [DEBUG] 
+Raw JSON: {}", body_text);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+332 -             println!("≡ƒôä [DEBUG] 
+Raw JSON: {}", body_text);
+332 +             println!("≡ƒôä [DEBUG] 
+Raw JSON: {body_text}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:401:15
+    |
+401 |       let url = format!(
+    |  _______________^
+402 | |         "https://generativelanguage
+.googleapis.com/v1beta/models/{}:generateCo
+ntent?key={}",
+403 | |         model, api_key
+404 | |     );
+    | |_____^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:416:20
+    |
+416 |           return Err(anyhow::anyhow!(
+    |  ____________________^
+417 | |             "Gemini API Error {}: 
+{}",
+418 | |             status,
+419 | |             body_text
+420 | |         ));
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:426:13
+    |
+426 |             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {}", e);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+426 -             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {}", e);
+426 +             println!("Γ¥î [DEBUG] 
+Failed to decode AI response: {e}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:427:13
+    |
+427 |             println!("≡ƒôä [DEBUG] 
+Raw JSON: {}", body_text);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+427 -             println!("≡ƒôä [DEBUG] 
+Raw JSON: {}", body_text);
+427 +             println!("≡ƒôä [DEBUG] 
+Raw JSON: {body_text}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:462:9
+    |
+462 |         println!("  Γöé {:<58}Γöé", 
+resp);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+462 -         println!("  Γöé {:<58}Γöé", 
+resp);
+462 +         println!("  Γöé 
+{resp:<58}Γöé");
+    |
+
+error: literal with an empty format string
+   --> src\ai\mod.rs:463:24
+    |
+463 |         println!("{}", "  Γöé        
+                                           
+          Γöé");
+    |                        ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#print_literal
+    = note: `-D clippy::print-literal` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::print_literal)]`
+help: try
+    |
+463 -         println!("{}", "  Γöé        
+                                           
+          Γöé");
+463 +         println!("  Γöé              
+                                           
+    Γöé");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:468:17
+    |
+468 |                 println!("  Γöé 
+{:<58}Γöé", wrapped);
+    |                 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+468 -                 println!("  Γöé 
+{:<58}Γöé", wrapped);
+468 +                 println!("  Γöé 
+{wrapped:<58}Γöé");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:489:13
+    |
+489 |             println!("  Γöé 
+{:<58}Γöé", line);
+    |             
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+489 -             println!("  Γöé 
+{:<58}Γöé", line);
+489 +             println!("  Γöé 
+{line:<58}Γöé");
+    |
+
+error: literal with an empty format string
+   --> src\ai\mod.rs:492:24
+    |
+492 |         println!("{}", "  Γöé        
+                                           
+          Γöé");
+    |                        ^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#print_literal
+help: try
+    |
+492 -         println!("{}", "  Γöé        
+                                           
+          Γöé");
+492 +         println!("  Γöé              
+                                           
+    Γöé");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\ai\mod.rs:509:13
+    |
+509 |             println!("  Γöé 
+{:<58}Γöé", line);
+    |             
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+509 -             println!("  Γöé 
+{:<58}Γöé", line);
+509 +             println!("  Γöé 
+{line:<58}Γöé");
+    |
+
+error: adding items after statements is 
+confusing, since items exist from the 
+start of the scope
+   --> src\ai\mod.rs:532:5
+    |
+532 |     use inquire::Select;
+    |     ^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#items_after_statements
+    = note: `-D 
+clippy::items-after-statements` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::items_after_statements)]`
+
+error: wildcard matches only a single 
+variant and will also match any future 
+added variants
+   --> src\ai\mod.rs:548:9
+    |
+548 |         _ => None,
+    |         ^ help: try: 
+`AiProvider::Simulation`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#match_wildcard_for_singl
+e_variants
+    = note: `-D clippy::match-wildcard-for-
+single-variants` implied by `-D warnings`
+    = help: to override `-D warnings` add `
+#[allow(clippy::match_wildcard_for_single_v
+ariants)]`
+
+error: field name starts with the struct's 
+name
+  --> src\core\mod.rs:82:5
+   |
+82 |     pub plant_type: String,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#struct_field_names
+   = note: `-D clippy::struct-field-names` 
+implied by `-D warnings`
+   = help: to override `-D warnings` add 
+`#[allow(clippy::struct_field_names)]`
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:255:27
+    |
+255 |                 moisture: moisture 
+as f32,
+    |                           
+^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+    = note: `-D 
+clippy::cast-possible-truncation` implied 
+by `-D warnings`
+    = help: to override `-D warnings` add `
+#[allow(clippy::cast_possible_truncation)]`
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:256:30
+    |
+256 |                 temperature: temp as 
+f32,
+    |                              
+^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:257:27
+    |
+257 |                 humidity: humidity 
+as f32,
+    |                           
+^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: called `Iterator::last` on a 
+`DoubleEndedIterator`; this will 
+needlessly iterate the entire iterator
+   --> src\db\mod.rs:258:28
+    |
+258 |                   timestamp: 
+timestamp
+    |  ____________________________^
+259 | |                     
+.unwrap_or_else(|| "Never".to_string())
+260 | |                     .split(' ')
+261 | |                     .last()
+    | |______________________-----^
+    |                        |
+    |                        help: try: 
+`next_back()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#double_ended_iterator_la
+st
+    = note: `-D 
+clippy::double-ended-iterator-last` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::double_ended_iterator_
+last)]`
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:264:52
+    |
+264 |                 min_moisture: 
+min_moisture.map(|m| m as f32),
+    |                                      
+              ^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: called `Iterator::last` on a 
+`DoubleEndedIterator`; this will 
+needlessly iterate the entire iterator
+   --> src\db\mod.rs:300:32
+    |
+300 |                       timestamp: row
+    |  ________________________________^
+301 | |                         
+.get::<String, _>("timestamp")
+302 | |                         .split(' ')
+303 | |                         .last()
+    | |__________________________-----^
+    |                            |
+    |                            help: 
+try: `next_back()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#double_ended_iterator_la
+st
+
+error: casting `i64` to `f64` causes a 
+loss of precision (`i64` is 64 bits wide, 
+but `f64`'s mantissa is only 52 bits wide)
+   --> src\db\mod.rs:349:81
+    |
+349 |                     .or_else(|_| 
+row.try_get::<i64, 
+_>("soil_moisture").map(|v| v as f64))
+    |                                      
+                                           
+^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_precision_loss
+    = note: `-D 
+clippy::cast-precision-loss` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::cast_precision_loss)]`
+
+error: casting `i64` to `f64` causes a 
+loss of precision (`i64` is 64 bits wide, 
+but `f64`'s mantissa is only 52 bits wide)
+   --> src\db\mod.rs:353:80
+    |
+353 |                     .or_else(|_| 
+row.try_get::<i64, 
+_>("ambient_temp").map(|v| v as f64))
+    |                                      
+                                          
+^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_precision_loss
+
+error: casting `i64` to `f64` causes a 
+loss of precision (`i64` is 64 bits wide, 
+but `f64`'s mantissa is only 52 bits wide)
+   --> src\db\mod.rs:357:84
+    |
+357 |                     .or_else(|_| 
+row.try_get::<i64, 
+_>("ambient_humidity").map(|v| v as f64))
+    |                                      
+                                           
+   ^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_precision_loss
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:362:31
+    |
+362 |                     moisture: 
+moisture as f32,
+    |                               
+^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:363:34
+    |
+363 |                     temperature: 
+temp as f32,
+    |                                  
+^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f64` to `f32` may truncate 
+the value
+   --> src\db\mod.rs:364:31
+    |
+364 |                     humidity: 
+humidity as f32,
+    |                               
+^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `u32` to `f32` causes a 
+loss of precision (`u32` is 32 bits wide, 
+but `f32`'s mantissa is only 23 bits wide)
+  --> src\hardware\mod.rs:13:12
+   |
+13 |     30.0 + (nanos % 40) as f32
+   |            ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#cast_precision_loss
+
+error: casting `u32` to `f32` causes a 
+loss of precision (`u32` is 32 bits wide, 
+but `f32`'s mantissa is only 23 bits wide)
+  --> src\hardware\mod.rs:25:12
+   |
+25 |     24.0 + (nanos % 5) as f32
+   |            ^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#cast_precision_loss
+
+error: casting `u32` to `f32` causes a 
+loss of precision (`u32` is 32 bits wide, 
+but `f32`'s mantissa is only 23 bits wide)
+  --> src\hardware\mod.rs:37:12
+   |
+37 |     60.0 + (nanos % 21) as f32
+   |            ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#cast_precision_loss
+
+error: variables can be used directly in 
+the `format!` string
+  --> src\hardware\mod.rs:48:5
+   |
+48 | /     println!(
+49 | |         "≡ƒÜ┐ [HARDWARE] Activating 
+pump for {} ({}s)...",
+50 | |         name, duration_seconds
+51 | |     );
+   | |_____^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#uninlined_format_args
+
+error: matching over `()` is more explicit
+  --> src\telegram\mod.rs:50:9
+   |
+50 |         _ = ct.cancelled() => {
+   |         ^ help: use `()` instead of 
+`_`: `()`
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#ignored_unit_patterns
+   = note: `-D 
+clippy::ignored-unit-patterns` implied by 
+`-D warnings`
+   = help: to override `-D warnings` add 
+`#[allow(clippy::ignored_unit_patterns)]`
+
+error: matching over `()` is more explicit
+  --> src\telegram\mod.rs:53:9
+   |
+53 |         _ = dispatcher.dispatch() => 
+{}
+   |         ^ help: use `()` instead of 
+`_`: `()`
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#ignored_unit_patterns
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\telegram\mod.rs:129:27
+    |
+129 |                     
+.text(format!("≡ƒÜ┐ Watering {}...", 
+plant_name))
+    |                           
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+129 -                     
+.text(format!("≡ƒÜ┐ Watering {}...", 
+plant_name))
+129 +                     
+.text(format!("≡ƒÜ┐ Watering 
+{plant_name}..."))
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\telegram\mod.rs:133:21
+    |
+133 | /                     format!(
+134 | |                         "Γ£à 
+<b>Watering Success</b>\nTriggered pump 
+for <b>{}</b>",
+135 | |                         plant_name
+136 | |                     ),
+    | |_____________________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: casting `f32` to `usize` may 
+truncate the value
+   --> src\telegram\mod.rs:164:25
+    |
+164 |         let bar_chars = (moisture / 
+10.0) as usize;
+    |                         
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f32` to `usize` may lose 
+the sign of the value
+   --> src\telegram\mod.rs:164:25
+    |
+164 |         let bar_chars = (moisture / 
+10.0) as usize;
+    |                         
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_sign_loss
+    = note: `-D clippy::cast-sign-loss` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::cast_sign_loss)]`
+
+error: `format!(..)` appended to existing 
+`String`
+   --> src\telegram\mod.rs:173:9
+    |
+173 | /         report.push_str(&format!(
+174 | |             "≡ƒî┐ 
+<b>{}</b>\n<code>[{}{}]</code> {:.1}% 
+({})\n\n",
+175 | |             p.name, bar_filled, 
+bar_empty, moisture, status
+176 | |         ));
+    | |__________^
+    |
+    = help: consider using `write!` to 
+avoid the extra allocation
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#format_push_string
+    = note: `-D 
+clippy::format-push-string` implied by `-D 
+warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::format_push_string)]`
+
+error: empty String is being created 
+manually
+   --> src\telegram\mod.rs:188:66
+    |
+188 |     let api_key = env::var("WEATHER_A
+PI_KEY").unwrap_or_else(|_| 
+"".to_string());
+    |                                      
+                            ^^^^^^^^^^^^^^ 
+help: consider using: `String::new()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#manual_string_new
+    = note: `-D clippy::manual-string-new` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::manual_string_new)]`
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\telegram\mod.rs:206:17
+    |
+206 | /                 format!(
+207 | |                     "{} <b>Weather 
+in {}</b>\nCondition: {}\nTemperature: 
+{:.1}┬░C",
+208 | |                     icon, city, 
+cond, temp
+209 | |                 ),
+    | |_________________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: single-character string constant 
+used as pattern
+   --> src\telegram\mod.rs:262:24
+    |
+262 |                 .split(":")
+    |                        ^^^ help: 
+consider using a `char`: `':'`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#single_char_pattern
+    = note: `-D 
+clippy::single-char-pattern` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::single_char_pattern)]`
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\telegram\mod.rs:271:17
+    |
+271 |                 format!("water:{}", 
+plant_name),
+    |                 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+271 -                 format!("water:{}", 
+plant_name),
+271 +                 
+format!("water:{plant_name}"),
+    |
+
+error: more than 3 bools in a struct
+   --> src\tui.rs:104:1
+    |
+104 | / struct App {
+105 | |     db: Arc<Database>,
+106 | |     cancel_token: 
+CancellationToken,
+107 | |     screen: Screen,
+...   |
+154 | |     daemon_cycle_count: u32,
+155 | | }
+    | |_^
+    |
+    = help: consider using a state machine 
+or refactoring bools into two-variant enums
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#struct_excessive_bools
+    = note: `-D 
+clippy::struct-excessive-bools` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::struct_excessive_bools)]`
+
+error: usage of wildcard import
+  --> src\tui.rs:13:5
+   |
+13 |     widgets::*,
+   |     ^^^^^^^^^^ help: try: 
+`widgets::{Block, Paragraph, ListItem, 
+List, Borders, BorderType, Wrap}`
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#wildcard_imports
+   = note: `-D clippy::wildcard-imports` 
+implied by `-D warnings`
+   = help: to override `-D warnings` add 
+`#[allow(clippy::wildcard_imports)]`
+
+error: unchecked subtraction of a 
+`Duration`
+   --> src\tui.rs:179:33
+    |
+179 |             weather_last_fetch: 
+Instant::now() - Duration::from_secs(600), 
+// Force initial fetch
+    |                                 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `Instant::now().checked_sub(Dura
+tion::from_secs(600)).unwrap()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#unchecked_time_subtracti
+on
+    = note: `-D 
+clippy::unchecked-time-subtraction` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add `
+#[allow(clippy::unchecked_time_subtraction)
+]`
+
+error: this `if let` can be collapsed into 
+the outer `if let`
+   --> src\tui.rs:253:21
+    |
+253 | /                     if let 
+Some(plants) = result {
+254 | |                         // Store 
+all plants for display
+255 | |                         
+self.all_plants = plants.clone();
+...   |
+271 | |                         self.tasks 
+= calculate_today_tasks(&plants, wc, None);
+272 | |                     }
+    | |_____________________^
+    |
+help: the outer pattern can be modified to 
+include the inner pattern
+   --> src\tui.rs:246:27
+    |
+246 |                 if let Ok(result) = 
+tokio::time::timeout(
+    |                           ^^^^^^ 
+replace this binding
+...
+253 |                     if let 
+Some(plants) = result {
+    |                            
+^^^^^^^^^^^^ with this pattern
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_match
+    = note: `-D clippy::collapsible-match` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::collapsible_match)]`
+
+error: this `if` statement can be collapsed
+   --> src\tui.rs:246:17
+    |
+246 | /                 if let Ok(result) 
+= tokio::time::timeout(
+247 | |                     
+Duration::from_millis(500),
+248 | |                     async {
+249 | |                         let plants 
+= db.get_all_active_plants().await.ok()?;
+...   |
+273 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+252 ~                 ).await
+253 ~                     && let 
+Some(plants) = result {
+254 |                         // Store all 
+plants for display
+...
+271 |                         self.tasks = 
+calculate_today_tasks(&plants, wc, None);
+272 ~                     }
+    |
+
+error: assigning the result of 
+`Clone::clone()` may be inefficient
+   --> src\tui.rs:255:25
+    |
+255 |                         
+self.all_plants = plants.clone();
+    |                         
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use 
+`clone_from()`: 
+`self.all_plants.clone_from(&plants)`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#assigning_clones
+    = note: `-D clippy::assigning-clones` 
+implied by `-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::assigning_clones)]`
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\tui.rs:337:17
+    |
+337 |                 eprintln!("Web 
+server error: {}", e);
+    |                 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+337 -                 eprintln!("Web 
+server error: {}", e);
+337 +                 eprintln!("Web 
+server error: {e}");
+    |
+
+error: useless use of `format!`
+   --> src\tui.rs:401:59
+    |
+401 | ...                   
+self.add_daemon_log("error", &format!("Γ¥î 
+Connection Refused: Is Dashboard 
+running?"));
+    |                                      
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider 
+using `.to_string()`: `"Γ¥î Connection 
+Refused: Is Dashboard 
+running?".to_string()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#useless_format
+    = note: `-D clippy::useless-format` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::useless_format)]`
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:407:110
+    |
+407 | ...   self.add_daemon_log("warning", 
+&format!("≡ƒÆº {} needs water! ({}% < 
+{}%)", plant.name, moisture as i32, 
+min_threshold as i32));
+    |                                      
+                                           
+            ^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:407:127
+    |
+407 | ...   self.add_daemon_log("warning", 
+&format!("≡ƒÆº {} needs water! ({}% < 
+{}%)", plant.name, moisture as i32, 
+min_threshold as i32));
+    |                                      
+                                           
+                             
+^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:416:99
+    |
+416 |                         
+self.add_daemon_log("info", &format!("Γ£ô 
+{} is healthy ({}%)", plant.name, moisture 
+as i32));
+    |                                      
+                                           
+                  ^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: this function has too many lines 
+(135/100)
+   --> src\tui.rs:430:5
+    |
+430 |     async fn handle_key(&mut self, 
+key: event::KeyEvent) {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#too_many_lines
+
+error: these match arms have identical 
+bodies
+   --> src\tui.rs:450:21
+    |
+450 | /                     
+KeyCode::Char('q') => {
+451 | |                         
+self.screen = Screen::MainMenu;
+452 | |                         
+self.pending = Pending::None;
+453 | |                     }
+    | |_____________________^
+454 | /                     KeyCode::Esc 
+=> {
+455 | |                         
+self.screen = Screen::MainMenu;
+456 | |                         
+self.pending = Pending::None;
+457 | |                     }
+    | |_____________________^
+    |
+    = help: if this is unintentional make 
+the arms return different values
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#match_same_arms
+help: otherwise merge the patterns into a 
+single arm
+    |
+450 -                     
+KeyCode::Char('q') => {
+451 -                         self.screen 
+= Screen::MainMenu;
+452 -                         self.pending 
+= Pending::None;
+453 -                     }
+454 -                     KeyCode::Esc => {
+450 +                     
+KeyCode::Char('q') | KeyCode::Esc => {
+    |
+
+error: unchecked subtraction of a 
+`Duration`
+   --> src\tui.rs:460:42
+    |
+460 |                         
+self.last_tick = Instant::now() - 
+Duration::from_secs(100);
+    |                                      
+    
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `Instant::now().checked_sub(Dura
+tion::from_secs(100)).unwrap()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#unchecked_time_subtracti
+on
+
+error: unchecked subtraction of a 
+`Duration`
+   --> src\tui.rs:591:34
+    |
+591 |                 self.last_tick = 
+Instant::now() - Duration::from_secs(100);
+    |                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `Instant::now().checked_sub(Dura
+tion::from_secs(100)).unwrap()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#unchecked_time_subtracti
+on
+
+error: unchecked subtraction of a 
+`Duration`
+   --> src\tui.rs:609:34
+    |
+609 |                 self.last_tick = 
+Instant::now() - Duration::from_secs(100);
+    |                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `Instant::now().checked_sub(Dura
+tion::from_secs(100)).unwrap()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#unchecked_time_subtracti
+on
+
+error: unchecked subtraction of a 
+`Duration`
+   --> src\tui.rs:614:34
+    |
+614 |                 self.last_tick = 
+Instant::now() - Duration::from_secs(100);
+    |                                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `Instant::now().checked_sub(Dura
+tion::from_secs(100)).unwrap()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#unchecked_time_subtracti
+on
+
+error: `format!(..)` appended to existing 
+`String`
+   --> src\tui.rs:793:25
+    |
+793 |                         
+resp.push_str(&format!("ΓÇó {} ({})\n", 
+plant.name, plant.plant_type));
+    |                         ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+    |
+    = help: consider using `write!` to 
+avoid the extra allocation
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#format_push_string
+
+error: this function has too many lines 
+(165/100)
+   --> src\tui.rs:930:5
+    |
+930 |     fn draw_tasks(&self, f: &mut 
+Frame) {
+    |     
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#too_many_lines
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\tui.rs:963:30
+    |
+963 |                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+    |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+963 -                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+963 +                 
+Span::styled(format!("  
+{refresh_indicator}"), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\tui.rs:969:30
+    |
+969 |                 
+Span::styled(format!("{c} ({t:.1}┬░C)", 
+c=c, t=t), 
+Style::default().fg(Color::Rgb(255, 213, 
+79))),
+    |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+969 -                 
+Span::styled(format!("{c} ({t:.1}┬░C)", 
+c=c, t=t), 
+Style::default().fg(Color::Rgb(255, 213, 
+79))),
+969 +                 
+Span::styled(format!("{c} ({t:.1}┬░C)"), 
+Style::default().fg(Color::Rgb(255, 213, 
+79))),
+    |
+
+error: called 
+`map(<f>).unwrap_or_else(<g>)` on an 
+`Option` value
+    --> src\tui.rs:1041:25
+     |
+1041 | / ...   chrono::NaiveDate::parse_fro
+m_str(&plant.last_watered, "%Y-%m-%d")
+1042 | | ...       .ok()
+1043 | | ...       .and_then(|d| 
+d.and_hms_opt(0, 0, 0))
+1044 | | ...       .map(|dt| chrono::TimeZo
+ne::from_local_datetime(&chrono::Local, 
+&dt).earliest().unwrap_or_else(|| 
+chrono::Local::now()))
+1045 | | ...       
+.unwrap_or_else(chrono::Local::now)
+     | |___________________________________
+__________^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#map_unwrap_or
+     = note: `-D clippy::map-unwrap-or` 
+implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::map_unwrap_or)]`
+help: try
+     |
+1041 ~                         chrono::Naiv
+eDate::parse_from_str(&plant.last_watered, 
+"%Y-%m-%d")
+1042 +                             .ok()
+1043 +                             
+.and_then(|d| d.and_hms_opt(0, 0, 
+0)).map_or_else(chrono::Local::now, |dt| ch
+rono::TimeZone::from_local_datetime(&chrono
+::Local, &dt).earliest().unwrap_or_else(|| 
+chrono::Local::now()))
+     |
+
+error: redundant closure
+    --> src\tui.rs:1044:124
+     |
+1044 | ...wrap_or_else(|| 
+chrono::Local::now()))
+     |                 
+^^^^^^^^^^^^^^^^^^^^^^^ help: replace the 
+closure with the associated function 
+itself: `chrono::Local::now`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#redundant_closure
+     = note: `-D 
+clippy::redundant-closure` implied by `-D 
+clippy::all`
+     = help: to override `-D clippy::all` 
+add `#[allow(clippy::redundant_closure)]`
+
+error: variables can be used directly in 
+the `format!` string
+    --> src\tui.rs:1149:30
+     |
+1149 |                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+     |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#uninlined_format_args
+help: change this to
+     |
+1149 -                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+1149 +                 
+Span::styled(format!("  
+{refresh_indicator}"), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+     |
+
+error: redundant closure
+    --> src\tui.rs:1170:63
+     |
+1170 |         let active = self.stats.get(
+"active_plants").and_then(|v| 
+v.as_i64()).unwrap_or(0);
+     |                                     
+                          ^^^^^^^^^^^^^^ 
+help: replace the closure with the method 
+itself: `serde_json::Value::as_i64`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#redundant_closure_for_m
+ethod_calls
+     = note: `-D clippy::redundant-closure-
+for-method-calls` implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::redundant_closure_for_meth
+od_calls)]`
+
+error: redundant closure
+    --> src\tui.rs:1171:69
+     |
+1171 |         let harvested = self.stats.g
+et("harvested_plants").and_then(|v| 
+v.as_i64()).unwrap_or(0);
+     |                                     
+                                
+^^^^^^^^^^^^^^ help: replace the closure 
+with the method itself: 
+`serde_json::Value::as_i64`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#redundant_closure_for_m
+ethod_calls
+
+error: this function has too many lines 
+(101/100)
+    --> src\tui.rs:1208:5
+     |
+1208 |     fn draw_sensor(&self, f: &mut 
+Frame) {
+     |     
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#too_many_lines
+
+error: variables can be used directly in 
+the `format!` string
+    --> src\tui.rs:1241:30
+     |
+1241 |                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+     |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#uninlined_format_args
+help: change this to
+     |
+1241 -                 
+Span::styled(format!("  {}", 
+refresh_indicator), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+1241 +                 
+Span::styled(format!("  
+{refresh_indicator}"), 
+Style::default().fg(Color::Rgb(0, 200, 
+83))),
+     |
+
+error: casting `f32` to `usize` may 
+truncate the value
+    --> src\tui.rs:1291:30
+     |
+1291 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                              ^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_possible_truncatio
+n
+
+error: casting `f32` to `usize` may lose 
+the sign of the value
+    --> src\tui.rs:1291:30
+     |
+1291 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                              ^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_sign_loss
+
+error: casting `usize` to `f32` causes a 
+loss of precision (`usize` is 32 or 64 
+bits wide, but `f32`'s mantissa is only 23 
+bits wide)
+    --> src\tui.rs:1291:53
+     |
+1291 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                                     
+                ^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_precision_loss
+
+error: implicitly cloning a `String` by 
+calling `to_string` on its dereferenced 
+type
+    --> src\tui.rs:1329:34
+     |
+1329 |                     
+Span::styled(item.to_string(), 
+Style::default().fg(Color::White).bold()),
+     |                                  
+^^^^^^^^^^^^^^^^ help: consider using: 
+`item.clone()`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#implicit_clone
+     = note: `-D clippy::implicit-clone` 
+implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::implicit_clone)]`
+
+error: implicitly cloning a `String` by 
+calling `to_string` on its dereferenced 
+type
+    --> src\tui.rs:1334:34
+     |
+1334 |                     
+Span::styled(item.to_string(), 
+Style::default().fg(Color::Rgb(160, 160, 
+180))),
+     |                                  
+^^^^^^^^^^^^^^^^ help: consider using: 
+`item.clone()`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#implicit_clone
+
+error: unnecessary boolean `not` operation
+    --> src\tui.rs:1408:20
+     |
+1408 |           let no_s = if 
+!self.cfm_yes {
+     |  ____________________^
+1409 | |             
+Style::default().fg(Color::Rgb(0, 200, 
+83)).bold()
+1410 | |         } else {
+1411 | |             
+Style::default().fg(Color::Rgb(80, 80, 
+100))
+1412 | |         };
+     | |_________^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#if_not_else
+     = note: `-D clippy::if-not-else` 
+implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::if_not_else)]`
+help: try
+     |
+1408 ~         let no_s = if self.cfm_yes {
+1409 +             
+Style::default().fg(Color::Rgb(80, 80, 
+100))
+1410 +         } else {
+1411 +             
+Style::default().fg(Color::Rgb(0, 200, 
+83)).bold()
+1412 ~         };
+     |
+
+error: unnecessary boolean `not` operation
+    --> src\tui.rs:1421:30
+     |
+1421 |                 Span::styled(if 
+!self.cfm_yes { "Γû╕ " } else { "  " }, 
+no_s),
+     |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `if self.cfm_yes { "  " } else 
+{ "Γû╕ " }`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#if_not_else
+
+error: this function has too many lines 
+(181/100)
+    --> src\tui.rs:1460:5
+     |
+1460 |     fn draw_web_dashboard(&self, f: 
+&mut Frame) {
+     |     
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#too_many_lines
+
+error: called `Iterator::last` on a 
+`DoubleEndedIterator`; this will 
+needlessly iterate the entire iterator
+    --> src\tui.rs:1483:20
+     |
+1483 |         let port = self.web_url.spli
+t(':').last().unwrap_or("8000");
+     |                    
+^^^^^^^^^^^^^^^^^^^^^^^^------
+     |                                     
+       |
+     |                                     
+       help: try: `next_back()`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#double_ended_iterator_l
+ast
+
+error: this function has too many lines 
+(149/100)
+    --> src\tui.rs:1660:5
+     |
+1660 |     fn draw_ai_agent(&self, f: &mut 
+Frame) {
+     |     
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#too_many_lines
+
+error: this `if` statement can be collapsed
+    --> src\tui.rs:1762:33
+     |
+1762 | / ...                   if 
+current.len() + word.len() + 1 > max_width 
+{
+1763 | | ...                       if 
+!current.is_empty() {
+1764 | | ...                           
+chat_lines.push(Line::from(vec![
+1765 | | ...                               
+Span::styled("     ", Style::default()),
+...    |
+1770 | | ...                   }
+     | |_______________________^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#collapsible_if
+help: collapse nested if block
+     |
+1762 ~                                 if 
+current.len() + word.len() + 1 > max_width
+1763 ~                                     
+&& !current.is_empty() {
+1764 |                                     
+    chat_lines.push(Line::from(vec![
+ ...
+1768 |                                     
+    current.clear();
+1769 ~                                     
+}
+     |
+
+error: this `if` statement can be collapsed
+    --> src\tui.rs:2014:9
+     |
+2014 | /         if 
+event::poll(Duration::from_millis(100))? {
+2015 | |             if let 
+Event::Key(key) = event::read()? {
+2016 | |                 
+app.handle_key(key).await;
+2017 | |             }
+2018 | |         }
+     | |_________^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#collapsible_if
+help: collapse nested if block
+     |
+2014 ~         if 
+event::poll(Duration::from_millis(100))?
+2015 ~             && let Event::Key(key) 
+= event::read()? {
+2016 |                 
+app.handle_key(key).await;
+2017 ~             }
+     |
+
+error: redundant clone
+  --> src\web\mod.rs:97:58
+   |
+97 |     let _ = state.tx.send(DashboardMes
+sage::AiLog(payload.clone()));
+   |                                       
+                   ^^^^^^^^ help: remove 
+this
+   |
+note: this value is dropped without 
+further use
+  --> src\web\mod.rs:97:51
+   |
+97 |     let _ = state.tx.send(DashboardMes
+sage::AiLog(payload.clone()));
+   |                                       
+            ^^^^^^^
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#redundant_clone
+   = note: requested on the command line 
+with `-D clippy::redundant-clone`
+
+error: `format!(..)` appended to existing 
+`String`
+   --> src\web\mod.rs:145:17
+    |
+145 | /                 
+csv_data.push_str(&format!(
+146 | |                     "{timestamp},{m
+oisture:.1},{temperature:.1},{humidity:.1}\
+n",
+147 | |                     timestamp = 
+point.timestamp,
+148 | |                     moisture = 
+point.moisture,
+149 | |                     temperature = 
+point.temperature,
+150 | |                     humidity = 
+point.humidity
+151 | |                 ));
+    | |__________________^
+    |
+    = help: consider using `write!` to 
+avoid the extra allocation
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#format_push_string
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:198:13
+    |
+198 |             println!("Γ¥î [WEB] 
+Failed to update settings: {}", e);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+198 -             println!("Γ¥î [WEB] 
+Failed to update settings: {}", e);
+198 +             println!("Γ¥î [WEB] 
+Failed to update settings: {e}");
+    |
+
+error: this `if` statement can be collapsed
+   --> src\web\mod.rs:218:13
+    |
+218 | /             if let Ok(msg) = 
+serde_json::to_string(&msg_obj) {
+219 | |                 if socket.send(Mess
+age::Text(msg)).await.is_err() {
+220 | |                     return;
+221 | |                 }
+222 | |             }
+    | |_____________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+218 ~             if let Ok(msg) = 
+serde_json::to_string(&msg_obj)
+219 ~                 && socket.send(Messag
+e::Text(msg)).await.is_err() {
+220 |                     return;
+221 ~                 }
+    |
+
+error: this `if` statement can be collapsed
+   --> src\web\mod.rs:230:13
+    |
+230 | /             if let Ok(msg) = 
+serde_json::to_string(&msg_obj) {
+231 | |                 if socket.send(Mess
+age::Text(msg)).await.is_err() {
+232 | |                     return;
+233 | |                 }
+234 | |             }
+    | |_____________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+230 ~             if let Ok(msg) = 
+serde_json::to_string(&msg_obj)
+231 ~                 && socket.send(Messag
+e::Text(msg)).await.is_err() {
+232 |                     return;
+233 ~                 }
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:283:22
+    |
+283 |         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {}", e))?;
+    |                      ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+283 -         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {}", e))?;
+283 +         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {e}"))?;
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:288:5
+    |
+288 |     println!("      Server listening 
+on: {}", addr);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+288 -     println!("      Server listening 
+on: {}", addr);
+288 +     println!("      Server listening 
+on: {addr}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:289:5
+    |
+289 |     println!("      Access in 
+browser:   http://{}:{}", display_host, 
+port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+289 -     println!("      Access in 
+browser:   http://{}:{}", display_host, 
+port);
+289 +     println!("      Access in 
+browser:   http://{display_host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:293:22
+    |
+293 |         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {}: 
+{}", addr, e))?;
+    |                      ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+293 -         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {}: 
+{}", addr, e))?;
+293 +         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {addr}: 
+{e}"))?;
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:300:22
+    |
+300 |         .map_err(|e| 
+anyhow::anyhow!("Web server error: {}", 
+e))?;
+    |                      
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+300 -         .map_err(|e| 
+anyhow::anyhow!("Web server error: {}", 
+e))?;
+300 +         .map_err(|e| 
+anyhow::anyhow!("Web server error: {e}"))?;
+    |
+
+error: item in documentation is missing 
+backticks
+  --> src\main.rs:50:18
+   |
+50 | /// Displays the AgroCLI ASCII banner 
+and version info.
+   |                  ^^^^^^^
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#doc_markdown
+   = note: `-D clippy::doc-markdown` 
+implied by `-D warnings`
+   = help: to override `-D warnings` add 
+`#[allow(clippy::doc_markdown)]`
+help: try
+   |
+50 - /// Displays the AgroCLI ASCII banner 
+and version info.
+50 + /// Displays the `AgroCLI` ASCII 
+banner and version info.
+   |
+
+error: usage of wildcard import
+  --> src\main.rs:13:5
+   |
+13 | use colored::*;
+   |     ^^^^^^^^^^ help: try: 
+`colored::Colorize`
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#wildcard_imports
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:123:18
+    |
+123 |     let db_url = 
+format!("sqlite://{}", db_path);
+    |                  
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+123 -     let db_url = 
+format!("sqlite://{}", db_path);
+123 +     let db_url = 
+format!("sqlite://{db_path}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:155:17
+    |
+155 |                 println!("Γ£à Added 
+{} ({}) to your garden.", name, 
+plant_type);
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+155 -                 println!("Γ£à Added 
+{} ({}) to your garden.", name, 
+plant_type);
+155 +                 println!("Γ£à Added 
+{name} ({plant_type}) to your garden.");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:157:17
+    |
+157 |                 println!("Γ¥î A 
+plant named '{}' already exists.", name);
+    |                 ^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+157 -                 println!("Γ¥î A 
+plant named '{}' already exists.", name);
+157 +                 println!("Γ¥î A 
+plant named '{name}' already exists.");
+    |
+
+error: matching over `()` is more explicit
+   --> src\main.rs:247:17
+    |
+247 |                 _ = ct.cancelled() 
+=> info!("Telegram bot task cancelled"),
+    |                 ^ help: use `()` 
+instead of `_`: `()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#ignored_unit_patterns
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:279:29
+    |
+279 |         let broadcast_url = format!("
+http://127.0.0.1:{}/api/broadcast/sensor", 
+port);
+    |                             ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+279 -         let broadcast_url = format!("
+http://127.0.0.1:{}/api/broadcast/sensor", 
+port);
+279 +         let broadcast_url = format!("
+http://127.0.0.1:{port}/api/broadcast/senso
+r");
+    |
+
+error: redundant closure
+   --> src\main.rs:285:43
+    |
+285 |             let w_cond = 
+weather_cond.map(|s| s.to_string());
+    |                                      
+     ^^^^^^^^^^^^^^^^^ help: replace the 
+closure with the method itself: 
+`std::string::ToString::to_string`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#redundant_closure_for_me
+thod_calls
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:319:5
+    |
+319 |     println!("   Server binding to: 
+{}:{}", host, port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+319 -     println!("   Server binding to: 
+{}:{}", host, port);
+319 +     println!("   Server binding to: 
+{host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:320:5
+    |
+320 |     println!("   Access in browser: 
+http://{}:{}", display_host, port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+320 -     println!("   Access in browser: 
+http://{}:{}", display_host, port);
+320 +     println!("   Access in browser: 
+http://{display_host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:380:25
+    |
+380 |           let alert_msg = format!(
+    |  _________________________^
+381 | |             "≡ƒÜ¿ *{}*: Moisture 
+LOW ({:.1}%). Triggering pump!",
+382 | |             name, moisture
+383 | |         );
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:412:24
+    |
+412 |           let fert_msg = format!(
+    |  ________________________^
+413 | |             "≡ƒî╛ *{}*: Fertilizer 
+is due! Please fertilize your plant.",
+414 | |             name
+415 | |         );
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: could not compile `AgroCLI` (bin 
+"AgroCLI" test) due to 108 previous errors
+warning: build failed, waiting for other 
+jobs to finish...
+error: could not compile `AgroCLI` (bin 
+"AgroCLI") due to 110 previous errors

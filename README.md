@@ -9,12 +9,20 @@
 
 ## ✨ Features
 
+### 🤖 AI Agent Mode (NEW!)
+- **Natural Language Control** - Control your garden with Indonesian commands
+- **Smart Command Parsing** - Understands context and intent
+- **Automated Actions** - Water plants, check status, get recommendations
+- **Interactive Chat** - Conversational interface for easy control
+- **No API Key Required** - Rule-based AI, works offline
+
 ### 🌐 Real-Time Web Dashboard
 - **Live Sensor Monitoring** - Moisture, temperature, humidity updates every 5 seconds
 - **Auto-Updating Charts** - Chart.js with rolling window visualization
 - **WebSocket Integration** - Instant updates across all connected devices
 - **Mobile Responsive** - Access from phone, tablet, or desktop
 - **Multi-Client Sync** - All browsers stay synchronized
+- **Manual Pump Control** - Trigger watering from web interface
 
 ### 🤖 Intelligent Automation
 - **24/7 Daemon Mode** - Continuous monitoring and auto-watering
@@ -22,22 +30,24 @@
 - **Sensor-Based Decisions** - Real-time moisture threshold triggers
 - **Failsafe Protection** - Pump lock after 5 consecutive triggers
 - **Event Broadcasting** - Real-time alerts and notifications
+- **Optimized Sensor Reading** - Smart caching to reduce hardware load
 
 ### 💻 CLI Interface
 - **Interactive Menu** - Beautiful terminal UI with questionary
-- **Live Task Monitor** - Real-time auto-refreshing task list
-- **Live Stats Monitor** - Real-time garden statistics
-- **Live Sensor Monitor** - Real-time sensor readings in terminal
+- **Live Task Monitor** - Real-time auto-refreshing task list (2s refresh)
+- **Live Stats Monitor** - Real-time garden statistics (1s refresh)
+- **Live Sensor Monitor** - Real-time sensor readings via WebSocket
 - **Task Management** - Daily watering and fertilizing schedules
 - **Plant Lifecycle** - Add, monitor, harvest plants
 - **Statistics Export** - CSV export for data analysis
-- **Rich Formatting** - Colorful terminal output
+- **Rich Formatting** - Colorful terminal output with emojis
 
 ### 🔌 IoT Ready
 - **Hardware Abstraction** - Easy integration with real sensors
-- **Mock Sensors** - Test without hardware
+- **Mock Sensors** - Test without hardware (random data generation)
 - **Raspberry Pi Compatible** - Ready for GPIO/I2C
 - **ESP32 Support** - Can integrate with microcontrollers
+- **HTTP API** - RESTful endpoints for external integrations
 
 ## 🚀 Quick Start
 
@@ -64,12 +74,17 @@ python main.py add chili "My-Chili"
 
 **Terminal 1 - Web Dashboard:**
 ```bash
-python main.py serve
+cargo run -- serve
 ```
 
 **Terminal 2 - Daemon Mode:**
 ```bash
-python main.py daemon
+cargo run -- daemon
+```
+
+**Terminal 3 - CLI Monitor (Optional):**
+```bash
+cargo run -- interactive
 ```
 
 **Browser:**
@@ -79,13 +94,31 @@ http://localhost:8000
 
 🎉 **Done!** You now have a fully functional real-time smart farming system.
 
+### Use AI Agent Mode
+
+Control your garden with natural language (Indonesian):
+
+```bash
+python main.py
+# Select: 🤖 AI Agent Mode
+```
+
+**Example Commands:**
+```
+🤖 Perintah: Cek status kebun
+🤖 Perintah: Siram tanaman Tomat-Saya
+🤖 Perintah: Siram semua tanaman yang kering
+🤖 Perintah: Berikan rekomendasi
+🤖 Perintah: Tambah tanaman tomat bernama Test-Plant
+```
+
+Type `help` for more commands, `exit` to quit.
+
 ## 📚 Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
-- **[REALTIME_SETUP.md](REALTIME_SETUP.md)** - Real-time features & configuration
-- **[LIVE_TERMINAL_FEATURES.md](LIVE_TERMINAL_FEATURES.md)** - Live terminal monitoring
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design & architecture
-- **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Testing procedures
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Backend API details
 
 ## 🎯 Use Cases
 

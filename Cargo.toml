@@ -1,0 +1,38 @@
+[package]
+name = "AgroCLI"
+version = "1.2.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.37", features = ["full"] }
+clap = { version = "4.5.4", features = ["derive"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_yaml = "0.9.34"
+serde_json = "1.0.114"
+anyhow = "1.0.81"
+thiserror = "1.0.58"
+dotenvy = "0.15.7"
+sqlx = { version = "0.7.4", features = ["runtime-tokio", "sqlite", "macros", "chrono"] }
+axum = { version = "0.7.5", features = ["ws", "json"] }
+tower-http = { version = "0.5.2", features = ["fs", "cors", "auth"] }
+inquire = "0.7.2"
+ratatui = "0.26.1"
+crossterm = "0.27.0"
+chrono = { version = "0.4.37", features = ["serde"] }
+reqwest = { version = "0.12.3", features = ["json"] }
+futures-util = "0.3.30"
+colored = "2.1.0"
+teloxide = { version = "0.12", features = ["macros"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+tokio-util = "0.7"
+base64 = "0.22.1"
+
+[lints.rust]
+future-incompatible = "warn"
+nonstandard_style = { level = "deny", priority = -1 }
+
+[lints.clippy]
+all = { level = "deny", priority = 10 }
+redundant_clone = { level = "deny", priority = 9 }
+pedantic = { level = "warn", priority = 3 }

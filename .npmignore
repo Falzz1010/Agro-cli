@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+
+# Data
+data/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Agent/AI files
+.agents/
+.gemini/
+
+# Build output files
+build_output.txt
+cargo_output.txt
+
+# Node modules (shouldn't be needed but just in case)
+node_modules/

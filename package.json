@@ -1,0 +1,53 @@
+{
+  "name": "agro-cli",
+  "version": "1.2.0",
+  "description": "🌿 AgroCLI - The Intelligent Garden Brain. IoT + AI Farming System with smart irrigation, sensor monitoring, and AI-powered plant care.",
+  "keywords": [
+    "agriculture",
+    "iot",
+    "farming",
+    "garden",
+    "cli",
+    "smart-irrigation",
+    "plant-care",
+    "sensor",
+    "ai",
+    "rust"
+  ],
+  "author": "Naufal Rizky",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Falzz1010/Agro-cli"
+  },
+  "homepage": "https://github.com/Falzz1010/Agro-cli#readme",
+  "bugs": {
+    "url": "https://github.com/Falzz1010/Agro-cli/issues"
+  },
+  "bin": {
+    "agrocli": "bin/agrocli.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js"
+  },
+  "os": [
+    "win32",
+    "linux",
+    "darwin"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "src/",
+    "static/",
+    "plants.yaml",
+    "Cargo.toml",
+    "Cargo.lock",
+    ".env.example",
+    "README.md",
+    "LICENSE"
+  ]
+}

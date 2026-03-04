@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Web Server
+  web:
+    build: .
+    container_name: agrocli-web
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8000
+    restart: unless-stopped
+    networks:
+      - agrocli-network
+
+  # Daemon (Automation)
+  daemon:
+    build: .
+    container_name: agrocli-daemon
+    command: python main.py daemon
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - DAEMON_CYCLE_INTERVAL=5
+      - DAEMON_DB_LOG_INTERVAL=60
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - agrocli-network
+
+networks:
+  agrocli-network:
+    driver: bridge
+
+volumes:
+  data:
+  logs:

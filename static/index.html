@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroCLI | AI IoT Garden Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="chart.js"></script>
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+    <div class="background-blob blob-1"></div>
+    <div class="background-blob blob-2"></div>
+
+    <main class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="brand">
+                <h1>Agro<span>CLI</span></h1>
+                <p>AI IoT Smart Farming Hub</p>
+            </div>
+            <div class="status-indicator">
+                <span class="pulse"></span>
+                <span id="connection-status">Live: Connecting...</span>
+            </div>
+        </header>
+
+        <section class="overview-grid">
+            <div class="stat-card">
+                <h3>Hub Status</h3>
+                <p id="hub-uptime">Ready</p>
+            </div>
+            <div class="stat-card">
+                <h3>Plants Monitored</h3>
+                <p id="plant-count">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active Node</h3>
+                <p id="node-name">Rust-Main-Node</p>
+            </div>
+        </section>
+
+        <!-- Multi-Sensor Charts Section -->
+        <section class="chart-section chart-grid">
+            <div class="stat-card chart-card">
+                <h3>Moisture Trends (%)</h3>
+                <canvas id="moisture-chart"></canvas>
+            </div>
+            <div class="stat-card chart-card">
+                <h3>Temp & Humidity Trends</h3>
+                <canvas id="temp-humidity-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- AI Agent Activity Feed -->
+        <section class="ai-feed-section">
+            <div class="stat-card ai-log-card">
+                <div class="card-header">
+                    <h3>🤖 Recent AI Agent Interactions</h3>
+                    <span class="badge">Live</span>
+                </div>
+                <div id="ai-log-container" class="ai-log-container">
+                    <!-- AI Logs injected here -->
+                    <p class="empty-log">No recent AI activity...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sensor History Section -->
+        <section class="history-section">
+            <div class="stat-card history-card">
+                <div class="card-header">
+                    <h3>📊 Sensor History</h3>
+                    <div class="history-controls">
+                        <select id="history-plant-select">
+                            <option value="">Select a plant...</option>
+                        </select>
+                        <div class="period-toggle">
+                            <button class="btn btn-period active" data-hours="24"
+                                onclick="setHistoryPeriod(24)">24h</button>
+                            <button class="btn btn-period" data-hours="168" onclick="setHistoryPeriod(168)">7d</button>
+                        </div>
+                        <button class="btn btn-period" id="btn-export-csv" onclick="handleExportCsv()">⬇️ Export
+                            CSV</button>
+                    </div>
+                </div>
+                <div id="history-chart-container" class="history-chart-container">
+                    <canvas id="history-chart"></canvas>
+                    <p id="history-empty" class="empty-log">Select a plant to view sensor history...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="plants-grid" class="plants-grid">
+            <!-- Dynamic Cards injected here -->
+            <div class="empty-state">
+                <div class="loader"></div>
+                <p>Waiting for sensor data from Daemon...</p>
+            </div>
+        </section>
+
+        <footer class="dashboard-footer">
+            <p>&copy; 2026 AgroCLI Rust Hub. Real-time engine active.</p>
+        </footer>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content glass shadow">
+            <div class="modal-header">
+                <h2 id="modal-plant-name">Plant Settings</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="settings-form">
+                <input type="hidden" id="setting-name">
+                <div class="input-group">
+                    <label>Moisture Threshold (%)</label>
+                    <input type="number" id="setting-moisture" min="0" max="100" step="1" required>
+                    <p class="input-help">System will water if moisture falls below this level.</p>
+                </div>
+                <div class="input-group">
+                    <label>Water Volume (ml)</label>
+                    <input type="number" id="setting-water" min="10" max="2000" step="10" required>
+                    <p class="input-help">Amount of water injected per pump cycle.</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-water">Save Config</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

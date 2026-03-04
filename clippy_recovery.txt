@@ -1,0 +1,487 @@
+﻿cargo :     Checking AgroCLI v1.2.0 
+(C:\Users\setia\Downloads\AgroCLI)
+At line:1 char:1
++ cargo clippy --all-targets 
+--all-features -- -D warnings 2>&1 | Out-F 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (    Checking Ag...nloads\AgroCLI):S  
+  tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+error: usage of wildcard import
+  --> src\tui.rs:14:5
+   |
+14 |     widgets::*,
+   |     ^^^^^^^^^^ help: try: 
+`widgets::{Block, Paragraph, ListItem, 
+List, Borders, BorderType, Wrap}`
+   |
+   = help: for further information visit ht
+tps://rust-lang.github.io/rust-clippy/rust-
+1.93.0/index.html#wildcard_imports
+   = note: `-D clippy::wildcard-imports` 
+implied by `-D warnings`
+   = help: to override `-D warnings` add 
+`#[allow(clippy::wildcard_imports)]`
+
+error: useless use of `format!`
+   --> src\tui.rs:401:59
+    |
+401 | ...                   
+self.add_daemon_log("error", &format!("Γ¥î 
+Connection Refused: Is Dashboard 
+running?"));
+    |                                      
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider 
+using `.to_string()`: `"Γ¥î Connection 
+Refused: Is Dashboard 
+running?".to_string()`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#useless_format
+    = note: `-D clippy::useless-format` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::useless_format)]`
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:407:110
+    |
+407 | ...   self.add_daemon_log("warning", 
+&format!("≡ƒÆº {} needs water! ({}% < 
+{}%)", plant.name, moisture as i32, 
+min_threshold as i32));
+    |                                      
+                                           
+            ^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+    = note: `-D 
+clippy::cast-possible-truncation` implied 
+by `-D warnings`
+    = help: to override `-D warnings` add `
+#[allow(clippy::cast_possible_truncation)]`
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:407:127
+    |
+407 | ...   self.add_daemon_log("warning", 
+&format!("≡ƒÆº {} needs water! ({}% < 
+{}%)", plant.name, moisture as i32, 
+min_threshold as i32));
+    |                                      
+                                           
+                             
+^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: casting `f32` to `i32` may truncate 
+the value
+   --> src\tui.rs:416:99
+    |
+416 |                         
+self.add_daemon_log("info", &format!("Γ£ô 
+{} is healthy ({}%)", plant.name, moisture 
+as i32));
+    |                                      
+                                           
+                  ^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#cast_possible_truncation
+
+error: using `write!()` with a format 
+string that ends in a single newline
+   --> src\tui.rs:790:33
+    |
+790 |                         let _ = 
+write!(resp, "ΓÇó {} ({})\n", plant.name, 
+plant.plant_type);
+    |                                 ^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#write_with_newline
+    = note: `-D 
+clippy::write-with-newline` implied by `-D 
+clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::write_with_newline)]`
+help: use `writeln!` instead
+    |
+790 -                         let _ = 
+write!(resp, "ΓÇó {} ({})\n", plant.name, 
+plant.plant_type);
+790 +                         let _ = 
+writeln!(resp, "ΓÇó {} ({})", plant.name, 
+plant.plant_type);
+    |
+
+error: casting `f32` to `usize` may 
+truncate the value
+    --> src\tui.rs:1293:30
+     |
+1293 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                              ^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: if this is intentional allow 
+the lint with `#[allow(clippy::cast_possibl
+e_truncation)]` ...
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_possible_truncatio
+n
+
+error: casting `f32` to `usize` may lose 
+the sign of the value
+    --> src\tui.rs:1293:30
+     |
+1293 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                              ^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_sign_loss
+     = note: `-D clippy::cast-sign-loss` 
+implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::cast_sign_loss)]`
+
+error: casting `usize` to `f32` causes a 
+loss of precision (`usize` is 32 or 64 
+bits wide, but `f32`'s mantissa is only 23 
+bits wide)
+    --> src\tui.rs:1293:53
+     |
+1293 |                 let filled = 
+((s.moisture / 100.0 * bar_len as f32) as 
+usize).min(bar_len);
+     |                                     
+                ^^^^^^^^^^^^^^
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#cast_precision_loss
+     = note: `-D 
+clippy::cast-precision-loss` implied by 
+`-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::cast_precision_loss)]`
+
+error: unnecessary boolean `not` operation
+    --> src\tui.rs:1423:30
+     |
+1423 |                 Span::styled(if 
+!self.cfm_yes { "Γû╕ " } else { "  " }, 
+no_s),
+     |                              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+help: try: `if self.cfm_yes { "  " } else 
+{ "Γû╕ " }`
+     |
+     = help: for further information visit 
+https://rust-lang.github.io/rust-clippy/rus
+t-1.93.0/index.html#if_not_else
+     = note: `-D clippy::if-not-else` 
+implied by `-D warnings`
+     = help: to override `-D warnings` add 
+`#[allow(clippy::if_not_else)]`
+
+error: this `if` statement can be collapsed
+   --> src\web\mod.rs:220:13
+    |
+220 | /             if let Ok(msg) = 
+serde_json::to_string(&msg_obj) {
+221 | |                 if socket.send(Mess
+age::Text(msg)).await.is_err() {
+222 | |                     return;
+223 | |                 }
+224 | |             }
+    | |_____________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` 
+implied by `-D clippy::all`
+    = help: to override `-D clippy::all` 
+add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+220 ~             if let Ok(msg) = 
+serde_json::to_string(&msg_obj)
+221 ~                 && socket.send(Messag
+e::Text(msg)).await.is_err() {
+222 |                     return;
+223 ~                 }
+    |
+
+error: this `if` statement can be collapsed
+   --> src\web\mod.rs:232:13
+    |
+232 | /             if let Ok(msg) = 
+serde_json::to_string(&msg_obj) {
+233 | |                 if socket.send(Mess
+age::Text(msg)).await.is_err() {
+234 | |                     return;
+235 | |                 }
+236 | |             }
+    | |_____________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#collapsible_if
+help: collapse nested if block
+    |
+232 ~             if let Ok(msg) = 
+serde_json::to_string(&msg_obj)
+233 ~                 && socket.send(Messag
+e::Text(msg)).await.is_err() {
+234 |                     return;
+235 ~                 }
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:285:22
+    |
+285 |         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {}", e))?;
+    |                      ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+    = note: `-D 
+clippy::uninlined-format-args` implied by 
+`-D warnings`
+    = help: to override `-D warnings` add 
+`#[allow(clippy::uninlined_format_args)]`
+help: change this to
+    |
+285 -         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {}", e))?;
+285 +         .map_err(|e| 
+anyhow::anyhow!("Invalid HOST or PORT in 
+.env: {e}"))?;
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:290:5
+    |
+290 |     println!("      Server listening 
+on: {}", addr);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+290 -     println!("      Server listening 
+on: {}", addr);
+290 +     println!("      Server listening 
+on: {addr}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:291:5
+    |
+291 |     println!("      Access in 
+browser:   http://{}:{}", display_host, 
+port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+291 -     println!("      Access in 
+browser:   http://{}:{}", display_host, 
+port);
+291 +     println!("      Access in 
+browser:   http://{display_host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:295:22
+    |
+295 |         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {}: 
+{}", addr, e))?;
+    |                      ^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+295 -         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {}: 
+{}", addr, e))?;
+295 +         .map_err(|e| 
+anyhow::anyhow!("Failed to bind to {addr}: 
+{e}"))?;
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\web\mod.rs:302:22
+    |
+302 |         .map_err(|e| 
+anyhow::anyhow!("Web server error: {}", 
+e))?;
+    |                      
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+302 -         .map_err(|e| 
+anyhow::anyhow!("Web server error: {}", 
+e))?;
+302 +         .map_err(|e| 
+anyhow::anyhow!("Web server error: {e}"))?;
+    |
+
+error: redundant closure
+   --> src\main.rs:285:43
+    |
+285 |             let w_cond = 
+weather_cond.map(|s| s.to_string());
+    |                                      
+     ^^^^^^^^^^^^^^^^^ help: replace the 
+closure with the method itself: 
+`std::string::ToString::to_string`
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#redundant_closure_for_me
+thod_calls
+    = note: `-D clippy::redundant-closure-f
+or-method-calls` implied by `-D warnings`
+    = help: to override `-D warnings` add `
+#[allow(clippy::redundant_closure_for_metho
+d_calls)]`
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:319:5
+    |
+319 |     println!("   Server binding to: 
+{}:{}", host, port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+319 -     println!("   Server binding to: 
+{}:{}", host, port);
+319 +     println!("   Server binding to: 
+{host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:320:5
+    |
+320 |     println!("   Access in browser: 
+http://{}:{}", display_host, port);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+help: change this to
+    |
+320 -     println!("   Access in browser: 
+http://{}:{}", display_host, port);
+320 +     println!("   Access in browser: 
+http://{display_host}:{port}");
+    |
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:380:25
+    |
+380 |           let alert_msg = format!(
+    |  _________________________^
+381 | |             "≡ƒÜ¿ *{}*: Moisture 
+LOW ({:.1}%). Triggering pump!",
+382 | |             name, moisture
+383 | |         );
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: variables can be used directly in 
+the `format!` string
+   --> src\main.rs:412:24
+    |
+412 |           let fert_msg = format!(
+    |  ________________________^
+413 | |             "≡ƒî╛ *{}*: Fertilizer 
+is due! Please fertilize your plant.",
+414 | |             name
+415 | |         );
+    | |_________^
+    |
+    = help: for further information visit h
+ttps://rust-lang.github.io/rust-clippy/rust
+-1.93.0/index.html#uninlined_format_args
+
+error: could not compile `AgroCLI` (bin 
+"AgroCLI") due to 22 previous errors
+warning: build failed, waiting for other 
+jobs to finish...
+error: could not compile `AgroCLI` (bin 
+"AgroCLI" test) due to 21 previous errors
