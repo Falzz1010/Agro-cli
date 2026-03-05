@@ -43,7 +43,12 @@ function initChart() {
                         display: false,
                         drawBorder: true
                     },
-                    ticks: { color: '#a0a0a0' }
+                    ticks: {
+                        color: '#a0a0a0',
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: window.innerWidth < 600 ? 5 : 12
+                    }
                 }
             },
             plugins: {
@@ -161,7 +166,12 @@ function initChart() {
                         display: false,
                         drawBorder: true
                     },
-                    ticks: { color: '#a0a0a0', maxTicksLimit: 12 }
+                    ticks: {
+                        color: '#a0a0a0',
+                        maxTicksLimit: window.innerWidth < 600 ? 6 : 12,
+                        maxRotation: 0,
+                        autoSkip: true
+                    }
                 }
             },
             plugins: {

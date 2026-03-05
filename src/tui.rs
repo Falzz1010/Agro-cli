@@ -20,7 +20,6 @@ use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use crate::core::{calculate_today_tasks, get_weather, load_rules, GardenTask};
-use crate::db::Database;
 use crate::hardware::{read_humidity, read_soil_moisture, read_temperature};
 
 const VERSION: &str = "1.2.0";
@@ -109,7 +108,7 @@ pub enum ExitSignal {
 
 #[allow(clippy::struct_excessive_bools)]
 struct App {
-    db: Arc<Database>,
+    state: crate::web::AppState,
     cancel_token: CancellationToken,
     screen: Screen,
     pending: Pending,
@@ -164,9 +163,9 @@ struct App {
 }
 
 impl App {
-    fn new(db: Arc<Database>, cancel_token: CancellationToken) -> Self {
+    fn new(state: crate::web::AppState, cancel_token: CancellationToken) -> Self {
         Self {
-            db,
+            state,
             cancel_token,
             screen: Screen::MainMenu,
             pending: Pending::None,
@@ -246,7 +245,7 @@ impl App {
                 self.last_tick = Instant::now();
                 
                 // Use timeout to prevent blocking
-                let db = Arc::clone(&self.db);
+                let db = Arc::clone(&self.state.db);
                 let key = env::var("WEATHER_API_KEY").unwrap_or_else(|_| "default_key".into());
                 let city = env::var("CITY").unwrap_or_else(|_| "Surabaya".into());
                 
@@ -285,7 +284,7 @@ impl App {
                 self.last_tick = Instant::now();
                 
                 // Use timeout to prevent blocking
-                let db = Arc::clone(&self.db);
+                let db = Arc::clone(&self.state.db);
                 if let Ok(Some(s)) = tokio::time::timeout(
                     Duration::from_millis(500),
                     async { db.get_garden_stats().await.ok() }
@@ -297,7 +296,7 @@ impl App {
                 self.last_tick = Instant::now();
                 
                 // Use timeout to prevent blocking
-                let db = Arc::clone(&self.db);
+                let db = Arc::clone(&self.state.db);
                 if let Ok(Some(plants)) = tokio::time::timeout(
                     Duration::from_millis(500),
                     async { db.get_all_active_plants().await.ok() }
@@ -337,12 +336,12 @@ impl App {
             return;
         }
         
-        let db = Arc::clone(&self.db);
+        let state = self.state.clone();
         let cancel_token = self.cancel_token.clone();
         
         // Spawn web server in background
         tokio::spawn(async move {
-            if let Err(e) = crate::web::serve(db, cancel_token).await {
+            if let Err(e) = crate::web::serve(state, cancel_token).await {
                 eprintln!("Web server error: {e}");
             }
         });
@@ -353,7 +352,7 @@ impl App {
     async fn run_daemon_cycle(&mut self) {
         self.add_daemon_log("info", &format!("🔄 Cycle #{} - Checking plants...", self.daemon_cycle_count));
         
-        let db = Arc::clone(&self.db);
+        let db = Arc::clone(&self.state.db);
         match db.get_all_active_plants().await {
             Ok(plants) if plants.is_empty() => {
                 self.add_daemon_log("warning", "⚠️  No active plants to monitor");
@@ -361,29 +360,20 @@ impl App {
             Ok(plants) => {
                 self.add_daemon_log("info", &format!("📊 Monitoring {} plant(s)", plants.len()));
                 
-                // Broadcast sensor data to web dashboard
-                let port = std::env::var("PORT").unwrap_or_else(|_| "8000".to_string());
-                let broadcast_url = format!("http://127.0.0.1:{port}/api/broadcast/sensor");
-                
-                if self.daemon_cycle_count == 1 {
-                    self.add_daemon_log("info", &format!("📡 Broadcast: {broadcast_url}"));
-                }
-                
-                let client = reqwest::Client::new();
-                
+                // Broadcast sensor data to web dashboard via Shared State
                 for plant in &plants {
-                    let moisture = read_soil_moisture(&plant.name);
-                    let temperature = read_temperature();
-                    let humidity = read_humidity();
+                    let moisture = crate::hardware::read_soil_moisture(&plant.name);
+                    let temperature = crate::hardware::read_temperature();
+                    let humidity = crate::hardware::read_humidity();
                     let min_threshold = plant.min_moisture.unwrap_or(40.0);
 
-                    // Log sensor data to DB just like the standalone daemon does
+                    // Log sensor data to DB
                     if let Err(e) = db.log_sensor_data(&plant.name, moisture, temperature, humidity).await {
                         self.add_daemon_log("error", &format!("❌ Failed to log sensor data: {e}"));
                     }
                     
-                    // Broadcast to web dashboard
-                    let sensor_data = crate::web::SensorData {
+                    // Direct Broadcast (Internal Channel)
+                    let _ = self.state.tx.send(crate::web::DashboardMessage::SensorUpdate(crate::web::SensorData {
                         plant_name: plant.name.clone(),
                         moisture,
                         temperature,
@@ -391,25 +381,10 @@ impl App {
                         timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
                         min_moisture: plant.min_moisture,
                         water_ml: plant.water_ml,
-                    };
-                    
-                    let response = client.post(&broadcast_url)
-                        .timeout(std::time::Duration::from_millis(500))
-                        .json(&sensor_data)
-                        .send()
-                        .await;
-                        
-                    match response {
-                        Ok(resp) => {
-                            if !resp.status().is_success() {
-                                let status = resp.status();
-                                self.add_daemon_log("error", &format!("❌ API Error {status}: Check console"));
-                            }
-                        }
-                        Err(e) => {
-                            self.add_daemon_log("error", "❌ Connection Refused: Is Dashboard running?");
-                            tracing::error!("Broadcast error: {}", e);
-                        }
+                    }));
+
+                    if self.daemon_cycle_count == 1 {
+                        self.add_daemon_log("info", &format!("📡 Internal Broadcast: {}", plant.name));
                     }
                     
                     if moisture < min_threshold {
@@ -671,7 +646,7 @@ impl App {
     }
 
     async fn plant_list_for(&mut self, title: &str, action: Pending) {
-        match self.db.get_all_active_plants().await {
+        match self.state.db.get_all_active_plants().await {
             Ok(plants) if plants.is_empty() => self.go_msg("Info", "No active plants."),
             Ok(plants) => {
                 let names = plants.into_iter().map(|p| p.name).collect();
@@ -695,7 +670,7 @@ impl App {
                 );
             }
             Pending::Harvest => {
-                match self.db.harvest_plant(&selected).await {
+                match self.state.db.harvest_plant(&selected).await {
                     Ok(_) => self.go_msg("🎉 Harvested!", &format!("{selected} has been archived.")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
                 }
@@ -797,7 +772,7 @@ impl App {
                     return;
                 }
                 let pt = plant_type.clone();
-                match self.db.add_plant(&pt, &name).await {
+                match self.state.db.add_plant(&pt, &name).await {
                     Ok(true) => self.go_msg("✅ Success!", &format!("Added {name} ({pt}) to your garden.")),
                     Ok(false) => self.go_msg("❌ Error", &format!("A plant named '{name}' already exists.")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
@@ -807,7 +782,7 @@ impl App {
                 let mm: f32 = self.field_val(0).parse().unwrap_or(40.0);
                 let wm: i32 = self.field_val(1).parse().unwrap_or(200);
                 let pn = name.clone();
-                match self.db.update_plant_settings(&pn, mm, wm).await {
+                match self.state.db.update_plant_settings(&pn, mm, wm).await {
                     Ok(_) => self.go_msg("⚙️  Updated!", &format!("{pn}: Min Moisture = {mm}%, Water = {wm}ml")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
                 }
@@ -854,7 +829,7 @@ impl App {
         match &self.pending {
             Pending::DeleteConfirm { name } => {
                 let n = name.clone();
-                match self.db.delete_plant(&n).await {
+                match self.state.db.delete_plant(&n).await {
                     Ok(true) => self.go_msg("🗑️  Deleted!", &format!("{n} and all sensor logs deleted.")),
                     Ok(false) => self.go_msg("❌ Error", &format!("Plant '{n}' not found.")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
@@ -884,7 +859,7 @@ impl App {
 
         // Simple simulation mode responses
         let response = if user_input.to_lowercase().contains("status") || user_input.to_lowercase().contains("how") {
-            match self.db.get_all_active_plants().await {
+            match self.state.db.get_all_active_plants().await {
                 Ok(plants) if plants.is_empty() => {
                     "🌱 You don't have any active plants yet. Add some plants from the main menu!".to_string()
                 }
@@ -2097,14 +2072,14 @@ fn make_footer(pairs: &[&str]) -> Paragraph<'static> {
 
 // ── Public entry point ─────────────────────────────────────────────
 
-pub async fn run_tui(db: Arc<Database>, cancel_token: CancellationToken) -> Result<ExitSignal> {
+pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToken) -> Result<ExitSignal> {
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let mut app = App::new(db, cancel_token);
+    let mut app = App::new(state, cancel_token);
 
     loop {
         terminal.draw(|f| app.render(f))?;

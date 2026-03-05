@@ -90,26 +90,17 @@ pub struct Candidate {
 }
 
 /// Helper to broadcast AI logs to the web dashboard.
-async fn broadcast_ai_log(query: &str, response: &str) {
-    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let port = env::var("PORT").unwrap_or_else(|_| "8000".to_string());
-    let url = format!("http://{host}:{port}/api/broadcast/ai");
-
-    let client = reqwest::Client::new();
-    let _ = client
-        .post(&url)
-        .timeout(std::time::Duration::from_secs(1))
-        .json(&crate::web::AiLog {
-            timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
-            query: query.to_string(),
-            response: response.to_string(),
-        })
-        .send()
-        .await;
+fn broadcast_ai_log(state: &crate::web::AppState, query: &str, response: &str) {
+    let _ = state.tx.send(crate::web::DashboardMessage::AiLog(crate::web::AiLog {
+        timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
+        query: query.to_string(),
+        response: response.to_string(),
+    }));
 }
 
 /// Entry point for the AI Agent interactive chat mode.
-pub async fn run_agent_mode(db: Arc<Database>) -> Result<()> {
+pub async fn run_agent_mode(state: std::sync::Arc<crate::web::AppState>) -> Result<()> {
+    let db = &state.db;
     // Clear screen and show banner
     print!("\x1B[2J\x1B[1;1H"); // Clear screen
     
@@ -189,11 +180,11 @@ pub async fn run_agent_mode(db: Arc<Database>) -> Result<()> {
         if let Some(key) = api_key.as_deref() {
             match provider {
                 AiProvider::GeminiFlash | AiProvider::GeminiPro => {
-                    match process_gemini_command(&client, key, &mut history, &input, &db, &provider).await {
+                    match process_gemini_command(&client, key, &mut history, &input, db, &provider).await {
                         Ok(response) => {
                             display_ai_response(&response);
                             let _ = db.log_ai_interaction(&input, &response).await;
-                            broadcast_ai_log(&input, &response).await;
+                            broadcast_ai_log(&state, &input, &response);
                         }
                         Err(e) => {
                             println!("{}", format!("  ❌ AI Error: {e}").red().bold());
@@ -208,7 +199,7 @@ pub async fn run_agent_mode(db: Arc<Database>) -> Result<()> {
             }
         } else {
             // Simulation Mode
-            simulated_response(&input, &db).await?;
+            simulated_response(&state, &input).await?;
         }
     }
 
@@ -429,8 +420,9 @@ async fn process_gemini_command_no_input(
     Ok("Processing complete.".to_string())
 }
 
-async fn simulated_response(input: &str, db: &Arc<Database>) -> Result<()> {
+async fn simulated_response(state: &crate::web::AppState, input: &str) -> Result<()> {
     let input_lower = input.to_lowercase();
+    let db = &state.db;
     
     if input_lower.contains("status")
         || input_lower.contains("kabarkan")
@@ -462,7 +454,7 @@ async fn simulated_response(input: &str, db: &Arc<Database>) -> Result<()> {
         println!();
         
         let _ = db.log_ai_interaction(input, &resp).await;
-        broadcast_ai_log(input, &resp).await;
+        broadcast_ai_log(state, input, &resp);
         
     } else if input_lower.contains("siram") || input_lower.contains("water") {
         println!("{}", "  🛠️  [SIMULATION] Analyzing watering command...".bright_black().italic());
@@ -485,7 +477,7 @@ async fn simulated_response(input: &str, db: &Arc<Database>) -> Result<()> {
         
         water_plant("Simulator-Plant", 3).await;
         let _ = db.log_ai_interaction(input, resp).await;
-        broadcast_ai_log(input, resp).await;
+        broadcast_ai_log(state, input, resp);
         
     } else {
         let resp = "[SIMULATION]: Maaf, dalam mode simulasi saya hanya paham perintah dasar seperti 'status' atau 'siram'. Masukkan API Key di .env untuk fitur AI penuh!";
@@ -502,7 +494,7 @@ async fn simulated_response(input: &str, db: &Arc<Database>) -> Result<()> {
         println!();
         
         let _ = db.log_ai_interaction(input, resp).await;
-        broadcast_ai_log(input, resp).await;
+        broadcast_ai_log(state, input, resp);
     }
     Ok(())
 }

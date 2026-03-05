@@ -255,11 +255,9 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
 /// # Errors
 /// Returns an error if the address is invalid or the server fails to bind/start.
 pub async fn serve(
-    db: std::sync::Arc<crate::db::Database>,
+    state: AppState,
     token: CancellationToken,
 ) -> anyhow::Result<()> {
-    let (tx, _rx) = broadcast::channel(100);
-    let state = AppState { tx, db };
 
     // Standard Axum authentication middleware
 

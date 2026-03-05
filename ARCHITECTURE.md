@@ -102,61 +102,23 @@
 ```
 agrocli/
 │
-├── main.py                    # Entry point & CLI commands
-│   ├── init()                 # Database initialization
-│   ├── add()                  # Add new plant
-│   ├── today()                # Show today's tasks
-│   ├── harvest()              # Archive plant
-│   ├── stats()                # Garden statistics
-│   ├── daemon_mode()          # 24/7 automation loop
-│   └── interactive_mode()     # Menu-driven interface
+├── main.rs                    # Entry point & CLI handles
+│   ├── main()                 # Async entry point
+│   ├── run_daemon()           # Automation loop
+│   └── run_tui()              # Interactive TUI
 │
-├── core/                      # Business logic
-│   ├── database.py            # SQLite operations
-│   │   ├── init_db()
-│   │   ├── add_plant()
-│   │   ├── get_all_active_plants()
-│   │   ├── update_care()
-│   │   ├── log_sensor_data()
-│   │   └── get_recent_sensor_logs()
-│   │
-│   ├── engine.py              # Task calculation engine
-│   │   ├── load_rules()
-│   │   └── calculate_today_tasks()
-│   │
-│   ├── weather.py             # Weather API integration
-│   │   └── get_weather()
-│   │
-│   └── realtime.py            # WebSocket manager (NEW)
-│       ├── ConnectionManager
-│       ├── send_sensor_update()
-│       ├── send_pump_event()
-│       └── send_system_alert()
-│
-├── hardware/                  # IoT abstraction layer
-│   ├── sensors.py             # Sensor readings
-│   │   ├── read_soil_moisture()
-│   │   ├── read_temperature()
-│   │   └── read_humidity()
-│   │
-│   └── pump.py                # Pump control
-│       └── water_plant()
-│
-├── web/                       # Web interface
-│   └── server.py              # FastAPI application
-│       ├── websocket_endpoint()
-│       ├── read_root()        # Dashboard HTML
-│       ├── api_get_telemetry()
-│       ├── api_water_plant()
-│       └── serve()
+├── src/                       # Rust source code
+│   ├── ai/                    # Gemini/AI Agent logic
+│   ├── db/                    # SQLx SQLite operations
+│   ├── hardware/              # Sensor & Pump abstraction
+│   ├── web/                   # Axum web server & WS
+│   └── tui/                   # Ratatui interface
 │
 ├── data/                      # Data storage
-│   ├── garden.db              # SQLite database
-│   └── config.json            # Weather API config
+│   └── garden.db              # SQLite database
 │
-├── plants.yaml                # Plant care rules
-├── requirements.txt           # Python dependencies
-└── REALTIME_SETUP.md         # Setup documentation
+├── Cargo.toml                 # Rust dependencies
+└── plants.yaml                # Plant care rules
 ```
 
 ## 🗄️ Database Schema
@@ -289,15 +251,15 @@ Start
 ## 📈 Performance Metrics
 
 ### Current Specifications
-- **Sensor Read Interval:** 5 seconds
-- **Database Write Interval:** 60 seconds
+- **Automation Cycle (Daemon):** 5 seconds
+- **Database Write (Log) Interval:** 5 seconds (tied to sensor read)
+- **TUI Refresh Rate:** 1s (Sensors), 2s (Tasks/Stats)
 - **WebSocket Broadcast:** Real-time (< 100ms)
-- **Chart Data Points:** 30 (rolling window)
-- **Max Concurrent Clients:** Unlimited (FastAPI async)
+- **Max Concurrent Clients:** Unlimited (Tokio async)
 
 ### Resource Usage (Estimated)
-- **CPU:** < 5% (idle), < 15% (active monitoring)
-- **RAM:** ~50MB (Python + FastAPI)
+- **CPU:** < 1% (idle), < 5% (active monitoring)
+- **RAM:** ~15-20MB (Rust + Axum)
 - **Database Size:** ~1MB per month (1 plant, 5s interval)
 - **Network:** ~1KB per sensor update
 
@@ -305,23 +267,31 @@ Start
 
 ### Option 1: Raspberry Pi (Recommended)
 ```bash
-# Install on Raspberry Pi OS
-sudo apt update
-sudo apt install python3-pip
-pip3 install -r requirements.txt
+# Install Rust (if not present)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Run as systemd service
-sudo systemctl enable agrocli-daemon
-sudo systemctl enable agrocli-web
+# Clone and Build
+git clone https://github.com/yourusername/AgroCLI.git
+cd AgroCLI
+cargo build --release
+
+# Run
+./target/release/AgroCLI daemon
+./target/release/AgroCLI serve
 ```
 
 ### Option 2: Docker Container
 ```dockerfile
-FROM python:3.11-slim
+FROM rust:1.75-slim as builder
 WORKDIR /app
 COPY . .
-RUN pip install -r requirements.txt
-CMD ["python", "main.py", "serve"]
+RUN cargo build --release
+
+FROM debian:bookworm-slim
+WORKDIR /app
+COPY --from=builder /app/target/release/AgroCLI .
+COPY --from=builder /app/plants.yaml .
+CMD ["./AgroCLI", "daemon"]
 ```
 
 ### Option 3: Cloud VPS

@@ -139,6 +139,12 @@ async fn main() -> Result<()> {
     // Ensure schema is up to date on every run
     db.init().await.context("Failed to initialize database schema")?;
 
+    let (tx, _rx) = tokio::sync::broadcast::channel(100);
+    let state = crate::web::AppState {
+        tx,
+        db: Arc::clone(&db),
+    };
+
     let global_token = CancellationToken::new();
 
     match cli.command {
@@ -204,21 +210,21 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Interactive) | None => {
             display_banner();
-            run_tui_loop(Arc::clone(&db), &global_token).await?;
+            run_tui_loop(state, &global_token).await?;
         }
         Some(Commands::Daemon) => {
-            run_daemon_direct(Arc::clone(&db), &global_token).await?;
+            run_daemon_direct(state, &global_token).await?;
         }
         Some(Commands::Serve) => {
-            run_web_direct(Arc::clone(&db), &global_token, false).await?;
+            run_web_direct(state, &global_token, false).await?;
         }
     }
     Ok(())
 }
 
 /// Runs the TUI in a loop, re-entering after external operations.
-async fn run_tui_loop(db: Arc<Database>, cancel_token: &CancellationToken) -> Result<()> {
-    match tui::run_tui(Arc::clone(&db), cancel_token.clone()).await? {
+async fn run_tui_loop(state: crate::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
+    match tui::run_tui(state, cancel_token.clone()).await? {
         tui::ExitSignal::Quit => {
             cancel_token.cancel();
             println!("Happy Farming! Goodbye. 👋");
@@ -228,7 +234,7 @@ async fn run_tui_loop(db: Arc<Database>, cancel_token: &CancellationToken) -> Re
 }
 
 /// Helper function to run the daemon loop directly.
-async fn run_daemon_direct(db_arc: Arc<Database>, cancel_token: &CancellationToken) -> Result<()> {
+async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
     
     info!("AgroCLI Daemon Activated.");
     println!(
@@ -240,7 +246,7 @@ async fn run_daemon_direct(db_arc: Arc<Database>, cancel_token: &CancellationTok
 
     // Start Telegram Bot in background if token exists
     if env::var("TELEGRAM_BOT_TOKEN").is_ok() {
-        let bot_db = Arc::clone(&db_arc);
+        let bot_db = Arc::clone(&state.db);
         let ct = cancel_token.clone();
         tokio::spawn(async move {
             tokio::select! {
@@ -256,7 +262,6 @@ async fn run_daemon_direct(db_arc: Arc<Database>, cancel_token: &CancellationTok
 
     let api_key = env::var("WEATHER_API_KEY").unwrap_or_else(|_| "default_key".to_string());
     let city = env::var("CITY").unwrap_or_else(|_| "Surabaya".to_string());
-    let client = reqwest::Client::new();
     
     loop {
         if should_exit() {
@@ -269,23 +274,19 @@ async fn run_daemon_direct(db_arc: Arc<Database>, cancel_token: &CancellationTok
         let weather_info = get_weather(&city, &api_key).await;
         let weather_cond = weather_info.as_ref().map(|(cond, _)| cond.as_str());
         
-        let active_plants = db_arc
+        let active_plants = state.db
             .get_all_active_plants()
             .await
             .context("Failed to get plants")?;
             
         let mut set = JoinSet::new();
-        let port = env::var("PORT").unwrap_or_else(|_| "8000".to_string());
-        let broadcast_url = format!("http://127.0.0.1:{port}/api/broadcast/sensor");
 
         for plant in active_plants {
-            let db_inner = Arc::clone(&db_arc);
-            let client_inner = client.clone();
-            let b_url = broadcast_url.clone();
+            let state_inner = state.clone();
             let w_cond = weather_cond.map(std::string::ToString::to_string);
             
             set.spawn(async move {
-                process_plant_automation(plant, db_inner, client_inner, b_url, w_cond).await
+                process_plant_automation(plant, state_inner, w_cond).await
             });
         }
 
@@ -304,7 +305,7 @@ async fn run_daemon_direct(db_arc: Arc<Database>, cancel_token: &CancellationTok
 
 /// Helper function to run the web server directly.
 async fn run_web_direct(
-    db_arc: Arc<Database>,
+    state: crate::web::AppState,
     cancel_token: &CancellationToken,
     background: bool,
 ) -> Result<()> {
@@ -327,24 +328,22 @@ async fn run_web_direct(
 
     if background {
         tokio::spawn(async move {
-            if let Err(e) = start_web_server(db_arc, ct).await {
+            if let Err(e) = start_web_server(state, ct).await {
                 error!("Web server error: {}", e);
             }
         });
         println!("✅ Dashboard is now running in the background.");
     } else {
-        start_web_server(db_arc, ct).await?;
+        start_web_server(state, ct).await?;
     }
 
     Ok(())
 }
 
-#[instrument(skip(db, client, broadcast_url))]
+#[instrument(skip(state))]
 async fn process_plant_automation(
     plant: crate::core::Plant,
-    db: Arc<Database>,
-    client: reqwest::Client,
-    broadcast_url: String,
+    state: crate::web::AppState,
     weather_cond: Option<String>,
 ) -> Result<()> {
     let name = &plant.name;
@@ -352,23 +351,18 @@ async fn process_plant_automation(
     let temp = read_temperature();
     let humidity = read_humidity();
 
-    db.log_sensor_data(name, moisture, temp, humidity).await?;
+    state.db.log_sensor_data(name, moisture, temp, humidity).await?;
 
-    // Broadcast to Web Dashboard with timeout
-    let _ = client
-        .post(&broadcast_url)
-        .timeout(Duration::from_secs(1))
-        .json(&crate::web::SensorData {
-            plant_name: name.clone(),
-            moisture,
-            temperature: temp,
-            humidity,
-            timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
-            min_moisture: plant.min_moisture,
-            water_ml: plant.water_ml,
-        })
-        .send()
-        .await;
+    // Broadcast directly via Internal Channel (No HTTP overhead!)
+    let _ = state.tx.send(crate::web::DashboardMessage::SensorUpdate(crate::web::SensorData {
+        plant_name: name.clone(),
+        moisture,
+        temperature: temp,
+        humidity,
+        timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
+        min_moisture: plant.min_moisture,
+        water_ml: plant.water_ml,
+    }));
 
     let tasks = calculate_today_tasks(
         std::slice::from_ref(&plant),
@@ -389,7 +383,7 @@ async fn process_plant_automation(
         info!(plant = %name, moisture = %moisture, "Moisture LOW. Triggering pump!");
         
         water_plant(name, 3).await;
-        db.update_care(name, CareType::Water).await?;
+        state.db.update_care(name, CareType::Water).await?;
 
         // Send Telegram Alert
         let _ = send_telegram_alert(&alert_msg).await;
