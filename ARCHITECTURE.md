@@ -1,334 +1,78 @@
-# 🏗️ AgroCLI System Architecture
+# 🏗️ AgroCLI Edge - High-Performance Smart Farming Architecture
 
 ## 📊 System Overview
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        AgroCLI System                            │
-│                   Smart Farming IoT Platform                     │
-└─────────────────────────────────────────────────────────────────┘
+AgroCLI Edge is a distributed smart farming hub built entirely in **Rust**. It utilizes high-performance asynchronous patterns to manage sensor data, automation, and real-time visualization with minimal resource overhead.
 
-┌──────────────────┐         ┌──────────────────┐
-│   CLI Interface  │         │  Web Dashboard   │
-│   (Terminal)     │         │   (Browser)      │
-│                  │         │                  │
-│  • Add Plants    │         │  • Live Monitor  │
-│  • View Tasks    │         │  • Control Pump  │
-│  • Statistics    │         │  • Real-time     │
-│  • Interactive   │         │    Charts        │
-└────────┬─────────┘         └────────┬─────────┘
-         │                            │
-         │                            │ HTTP/WebSocket
-         ▼                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      Core Application Layer                      │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │   Engine     │  │   Database   │  │   Weather    │         │
-│  │              │  │              │  │              │         │
-│  │ • Task Calc  │  │ • SQLite     │  │ • OpenWeather│         │
-│  │ • Rules      │  │ • CRUD Ops   │  │   API        │         │
-│  │ • Logic      │  │ • Logging    │  │ • Conditions │         │
-│  └──────────────┘  └──────────────┘  └──────────────┘         │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────┐      │
-│  │              Real-Time Manager                        │      │
-│  │                                                        │      │
-│  │  • WebSocket Hub                                      │      │
-│  │  • Event Broadcasting                                 │      │
-│  │  • Connection Management                              │      │
-│  └──────────────────────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-         │                            │
-         │                            │
-         ▼                            ▼
-┌──────────────────┐         ┌──────────────────┐
-│  Hardware Layer  │         │   Daemon Mode    │
-│                  │         │                  │
-│  • Sensors       │◄────────┤  • Auto Monitor  │
-│    - Moisture    │         │  • Auto Water    │
-│    - Temp/Humid  │         │  • Failsafe      │
-│  • Pump Control  │         │  • 24/7 Loop     │
-└──────────────────┘         └──────────────────┘
+```mermaid
+graph TD
+    User["👤 User (TUI/Web)"] --> Hub["🌐 Axum Web Server"]
+    Hub --> WS["🔌 WebSocket Hub"]
+    
+    subgraph "Core Engine (Tokio)"
+        Daemon["🤖 Automation Daemon"]
+        AI["🤖 AI Agent (Gemini)"]
+        DB["🗄️ SQLite (sqlx)"]
+    end
+    
+    Daemon <--> |Direct Async Channels| AI
+    Daemon <--> |Direct Async Channels| Hub
+    
+    Daemon --> HW["🔌 Hardware Layer"]
+    HW --> Sensors["🌡️ Sensors (I2C/MQTT)"]
+    HW --> Actuators["💧 Water Pumps"]
+    
+    Sensors -.-> |Real-time Stream| WS
 ```
 
-## 🔄 Real-Time Data Flow
+## 🔄 High-Performance Data Flow
 
-### Scenario 1: Daemon Mode Monitoring
+Unlike traditional IoT systems that rely on overhead-heavy HTTP requests for internal communication, AgroCLI Edge uses **Tokio Broadcast Channels**.
 
-```
-1. Daemon Loop (Every 5 seconds)
-   │
-   ├─► Read Sensors (Mock/Real Hardware)
-   │   └─► Moisture: 45.2%
-   │   └─► Temperature: 28.5°C
-   │   └─► Humidity: 65.3%
-   │
-   ├─► Broadcast via WebSocket
-   │   └─► All connected browsers receive update
-   │
-   ├─► Check Watering Rules
-   │   └─► If moisture < threshold
-   │       ├─► Broadcast "Pump ON" event
-   │       ├─► Activate pump (3 seconds)
-   │       ├─► Update database
-   │       └─► Broadcast "Pump OFF" event
-   │
-   └─► Log to Database (Every 60 seconds)
-       └─► sensor_logs table
-```
+### 1. Zero-Latency Sensor Streaming
+1. **Daemon** reads hardware sensors every 5 seconds.
+2. Data is injected into a **shared memory channel** (`broadcast::Sender`).
+3. **Web Server** and **AI Agent** subscribe directly to this channel.
+4. Updates appear on the dashboard in <100ms.
 
-### Scenario 2: Manual Pump Trigger from Web
+### 2. Intelligent AI Tool-Calling
+1. **AI Agent** receives a natural language query.
+2. AI decides to use the `get_garden_status` tool.
+3. The Agent executes a direct database query via `sqlx`.
+4. If action is needed (e.g., "Water the plant"), AI triggers `water_plant_action`.
 
-```
-1. User clicks "Trigger Pump" button
-   │
-   ├─► POST /api/water/{plant_name}
-   │
-   ├─► Server broadcasts "Pump ON" event
-   │   └─► All browsers show "Pumping..." status
-   │
-   ├─► Background task activates pump
-   │   └─► 3 seconds duration
-   │
-   ├─► Update database (last_watered)
-   │
-   └─► Server broadcasts "Pump OFF" event
-       └─► All browsers reset button state
-```
+## 📁 Modular Project Structure
 
-## 📁 File Structure
+The project is organized into highly decoupled modules:
 
-```
-agrocli/
-│
-├── main.rs                    # Entry point & CLI handles
-│   ├── main()                 # Async entry point
-│   ├── run_daemon()           # Automation loop
-│   └── run_tui()              # Interactive TUI
-│
-├── src/                       # Rust source code
-│   ├── ai/                    # Gemini/AI Agent logic
-│   ├── db/                    # SQLx SQLite operations
-│   ├── hardware/              # Sensor & Pump abstraction
-│   ├── web/                   # Axum web server & WS
-│   └── tui/                   # Ratatui interface
-│
-├── data/                      # Data storage
-│   └── garden.db              # SQLite database
-│
-├── Cargo.toml                 # Rust dependencies
-└── plants.yaml                # Plant care rules
-```
+- `src/main.rs`: High-level orchestrator and CLI entry points.
+- `src/core/`: Business logic, care rules, and task calculation.
+- `src/db/`: Asynchronous SQLite interactions using `sqlx`.
+- `src/hardware/`: Abstraction layer for sensors and actuators.
+- `src/web/`: Axum server providing REST APIs and WebSocket hub.
+- `src/ai/`: Gemini-powered autonomous agent logic and tool-calling.
+- `src/tui/`: Ratatui-based high-performance terminal dashboard.
 
-## 🗄️ Database Schema
+## 🗄️ Reliable Persistence
 
-### Table: plants
-```sql
-CREATE TABLE plants (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    plant_type TEXT NOT NULL,
-    planted_date TEXT NOT NULL,
-    last_watered TEXT NOT NULL,
-    last_fertilized TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active'
-);
-```
+We use **SQLite** with efficient indexing to handle long-term sensor history.
 
-### Table: sensor_logs
-```sql
-CREATE TABLE sensor_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp TEXT NOT NULL,
-    ambient_temp REAL NOT NULL,
-    ambient_humidity REAL NOT NULL,
-    plant_name TEXT NOT NULL,
-    soil_moisture REAL NOT NULL
-);
-```
+- **`plants` table**: Stores plant profiles and custom thresholds.
+- **`sensor_logs` table**: Optimized for time-series data storage.
+- **`ai_logs` table**: Persistent record of AI decisions and interactions.
 
-## 🔌 WebSocket Protocol
+## 🔐 Security & Failsafes
 
-### Client → Server
-```javascript
-// Keep-alive ping (optional)
-ws.send(JSON.stringify({ type: "ping" }));
-```
+- **Authentication**: Basic Auth for sensitive endpoints (Dashboard/API).
+- **Environment**: All secrets managed via encrypted `.env`.
+- **Pump Failsafe**: Software-based lock if moisture doesn't rise after 5 consecutive pumps to prevent flooding.
+- **Async Safety**: Use of `CancellationToken` for graceful shutdowns.
 
-### Server → Client
+## 🔄 Future Scalability
 
-**Message Format:**
-```typescript
-interface WebSocketMessage {
-  type: "sensor_update" | "pump_event" | "system_alert";
-  timestamp: string;
-  // ... type-specific fields
-}
-```
-
-**Sensor Update:**
-```json
-{
-  "type": "sensor_update",
-  "timestamp": "14:23:45",
-  "plant_name": "Tomato-1",
-  "moisture": 45.2,
-  "temperature": 28.5,
-  "humidity": 65.3
-}
-```
-
-**Pump Event:**
-```json
-{
-  "type": "pump_event",
-  "timestamp": "14:23:50",
-  "plant_name": "Tomato-1",
-  "status": "on",
-  "duration": 3
-}
-```
-
-**System Alert:**
-```json
-{
-  "type": "system_alert",
-  "timestamp": "14:24:00",
-  "message": "Emergency: Pump locked",
-  "level": "error"
-}
-```
-
-## 🎯 Decision Logic
-
-### Watering Decision Tree
-
-```
-Start
-  │
-  ├─► Has real-time moisture sensor?
-  │   ├─► YES: Use sensor reading
-  │   │   └─► moisture < min_moisture_level?
-  │   │       ├─► YES: needs_water = true
-  │   │       └─► NO: needs_water = false
-  │   │
-  │   └─► NO: Use date-based rule
-  │       └─► days_since_watered >= water_interval_days?
-  │           ├─► YES: needs_water = true
-  │           └─► NO: needs_water = false
-  │
-  ├─► Is it raining?
-  │   ├─► YES: skip_watering = true
-  │   └─► NO: proceed
-  │
-  ├─► Pump triggered 5+ times consecutively?
-  │   ├─► YES: LOCK PUMP (failsafe)
-  │   └─► NO: proceed
-  │
-  └─► Execute watering
-      ├─► Activate pump
-      ├─► Update database
-      └─► Broadcast event
-```
-
-## 🔐 Security Considerations
-
-### Current Implementation (Development)
-- ❌ No authentication
-- ❌ No HTTPS/WSS
-- ❌ No rate limiting
-- ❌ No input validation
-
-### Production Recommendations
-- ✅ Add JWT authentication
-- ✅ Enable HTTPS with SSL certificate
-- ✅ Implement rate limiting
-- ✅ Validate all user inputs
-- ✅ Add CORS configuration
-- ✅ Use environment variables for secrets
-
-## 📈 Performance Metrics
-
-### Current Specifications
-- **Automation Cycle (Daemon):** 5 seconds
-- **Database Write (Log) Interval:** 5 seconds (tied to sensor read)
-- **TUI Refresh Rate:** 1s (Sensors), 2s (Tasks/Stats)
-- **WebSocket Broadcast:** Real-time (< 100ms)
-- **Max Concurrent Clients:** Unlimited (Tokio async)
-
-### Resource Usage (Estimated)
-- **CPU:** < 1% (idle), < 5% (active monitoring)
-- **RAM:** ~15-20MB (Rust + Axum)
-- **Database Size:** ~1MB per month (1 plant, 5s interval)
-- **Network:** ~1KB per sensor update
-
-## 🚀 Deployment Options
-
-### Option 1: Raspberry Pi (Recommended)
-```bash
-# Install Rust (if not present)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Clone and Build
-git clone https://github.com/yourusername/AgroCLI.git
-cd AgroCLI
-cargo build --release
-
-# Run
-./target/release/AgroCLI daemon
-./target/release/AgroCLI serve
-```
-
-### Option 2: Docker Container
-```dockerfile
-FROM rust:1.75-slim as builder
-WORKDIR /app
-COPY . .
-RUN cargo build --release
-
-FROM debian:bookworm-slim
-WORKDIR /app
-COPY --from=builder /app/target/release/AgroCLI .
-COPY --from=builder /app/plants.yaml .
-CMD ["./AgroCLI", "daemon"]
-```
-
-### Option 3: Cloud VPS
-- Deploy to DigitalOcean/AWS/Azure
-- Use reverse proxy (Nginx)
-- Enable HTTPS with Let's Encrypt
-- Set up monitoring (Prometheus/Grafana)
-
-## 🔄 Future Enhancements
-
-### Phase 1: Hardware Integration
-- [ ] Real DHT22 temperature/humidity sensor
-- [ ] Real capacitive soil moisture sensor
-- [ ] Real relay module for pump control
-- [ ] Multiple pump support
-
-### Phase 2: Advanced Features
-- [ ] Machine learning for optimal watering
-- [ ] Historical data analytics
-- [ ] Weather forecast integration
-- [ ] Mobile app (React Native)
-- [ ] Push notifications
-
-### Phase 3: Scalability
-- [ ] Multi-garden support
-- [ ] User authentication & roles
-- [ ] Cloud sync & backup
-- [ ] API for third-party integrations
-- [ ] Marketplace for plant profiles
-
-## 📞 Support & Contribution
-
-Untuk pertanyaan atau kontribusi:
-- GitHub Issues
-- Pull Requests welcome
-- Documentation improvements
+- **Phase 4**: Advanced machine learning for predictive evaporation modeling.
+- **Phase 5**: Multi-node support for large-scale greenhouse management.
+- **Phase 6**: P2P data synchronization between multiple AgroCLI Edge instances.
 
 ---
-
-**Built with ❤️ for smart farming enthusiasts**
+**High Performance. Zero Latency. Smart Farming.**

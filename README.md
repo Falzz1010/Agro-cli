@@ -1,252 +1,96 @@
-# 🌱 AgroCLI - Smart Farming IoT Platform
+# 🌱 AgroCLI Edge - Smart Farming IoT Platform
 
-> Self-hosted intelligent garden management system with real-time monitoring and automation
+> Self-hosted intelligent garden management system with real-time monitoring and automation. Now fully rewritten in **Rust** for maximum performance and reliability.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green.svg)](https://fastapi.tiangolo.com/)
-[![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-orange.svg)](https://websockets.readthedocs.io/)
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[![Axum](https://img.shields.io/badge/Axum-0.7-blue.svg)](https://github.com/tokio-rs/axum)
+[![Websocket](https://img.shields.io/badge/WebSocket-Real--Time-orange.svg)](https://github.com/tokio-rs/axum)
+[![Ratatui](https://img.shields.io/badge/Ratatui-0.26-green.svg)](https://ratatui.rs/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## ✨ Features
+## ✨ Core Features
 
-### 🤖 AI Agent Mode (NEW!)
-- **Natural Language Control** - Control your garden with Indonesian commands
-- **Smart Command Parsing** - Understands context and intent
-- **Automated Actions** - Water plants, check status, get recommendations
-- **Interactive Chat** - Conversational interface for easy control
-- **No API Key Required** - Rule-based AI, works offline
+### 🌐 Premium Web Dashboard (v1.3.0)
+- **Full Mobile Responsiveness** - Premium glassmorphic design that adapt to phone, tablet, and desktop.
+- **AI Agent Interaction Feed** - Real-time stream of what your garden brain is thinking and doing.
+- **Interactive Charts** - Moisture, Temp, and Humidity trends with high-performance rendering.
+- **Sensor History & Export** - View historical data up to 7 days and export directly to CSV.
+- **Manual Control** - Trigger watering and update plant thresholds remotely.
+- **Secure Access** - Basic authentication protected endpoints.
 
-### 🌐 Real-Time Web Dashboard
-- **Live Sensor Monitoring** - Moisture, temperature, humidity updates every 5 seconds
-- **Auto-Updating Charts** - Chart.js with rolling window visualization
-- **WebSocket Integration** - Instant updates across all connected devices
-- **Mobile Responsive** - Access from phone, tablet, or desktop
-- **Multi-Client Sync** - All browsers stay synchronized
-- **Manual Pump Control** - Trigger watering from web interface
+### 🤖 AI Agent Mode
+- **Multimodal AI Support** - Powered by Google Gemini (Flash/Pro) for intelligent decision making.
+- **Natural Language Control** - Control your garden with natural language (Indonesian/English).
+- **Tool-Calling Capabilities** - AI can directly query the database and trigger hardware via `water_plant_action`.
+- **Simulation Mode** - Test AI logic safely without an API key.
 
-### 🤖 Intelligent Automation
-- **24/7 Daemon Mode** - Continuous monitoring and auto-watering
-- **Weather-Aware Logic** - Skip watering when raining
-- **Sensor-Based Decisions** - Real-time moisture threshold triggers
-- **Failsafe Protection** - Pump lock after 5 consecutive triggers
-- **Event Broadcasting** - Real-time alerts and notifications
-- **Optimized Sensor Reading** - Smart caching to reduce hardware load
-
-### 💻 CLI Interface
-- **Interactive Menu** - Beautiful terminal UI with questionary
-- **Live Task Monitor** - Real-time auto-refreshing task list (2s refresh)
-- **Live Stats Monitor** - Real-time garden statistics (1s refresh)
-- **Live Sensor Monitor** - Real-time sensor readings via WebSocket
-- **Task Management** - Daily watering and fertilizing schedules
-- **Plant Lifecycle** - Add, monitor, harvest plants
-- **Statistics Export** - CSV export for data analysis
-- **Rich Formatting** - Colorful terminal output with emojis
-
-### 🔌 IoT Ready
-- **Hardware Abstraction** - Easy integration with real sensors
-- **Mock Sensors** - Test without hardware (random data generation)
-- **Raspberry Pi Compatible** - Ready for GPIO/I2C
-- **ESP32 Support** - Can integrate with microcontrollers
-- **HTTP API** - RESTful endpoints for external integrations
+### 🔌 IoT & Performance Layer
+- **High-Performance Rust Core** - Optimized async engine using `tokio` and `axum`.
+- **Direct Async Broadcasting** - Zero-latency internal communication between modules via specialized channels.
+- **Daemon Mode** - 24/7 automated monitoring, weather checking, and failsafe protection.
+- **SQLite Persistence** - Reliable local data storage with `sqlx`.
+- **Ratatui TUI** - Polished terminal interface for quick management and monitoring.
 
 ## 🚀 Quick Start
+
+### Prerequisites
+- [Rust & Cargo](https://rustup.rs/) (v1.75+)
+- [SQLite](https://www.sqlite.org/)
 
 ### Installation
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/agrocli.git
-cd agrocli
+git clone https://github.com/yourusername/AgroCLI.git
+cd AgroCLI
 
-# Install dependencies
-pip install -r requirements.txt
+# Build the project
+cargo build --release
 
-# Initialize database
-python main.py init
+# Initialize garden (first time only)
+cargo run -- init
 ```
 
-### Add Plants
-```bash
-python main.py add tomato "My-Tomato"
-python main.py add chili "My-Chili"
-```
+### Usage
 
-### Start Real-Time System
-
-**Terminal 1 - Web Dashboard:**
+**Terminal 1 - Web Dashboard & Logic Engine:**
 ```bash
+# Starts the server and daemon logic
 cargo run -- serve
 ```
 
-**Terminal 2 - Daemon Mode:**
+**Terminal 2 - Interactive Interface (TUI):**
 ```bash
-cargo run -- daemon
-```
-
-**Terminal 3 - CLI Monitor (Optional):**
-```bash
+# Polished terminal dashboard
 cargo run -- interactive
 ```
 
-**Browser:**
-```
-http://localhost:8000
-```
-
-🎉 **Done!** You now have a fully functional real-time smart farming system.
-
-### Use AI Agent Mode
-
-Control your garden with natural language (Indonesian):
-
+**Terminal 3 - AI Agent (Optional):**
 ```bash
-python main.py
-# Select: 🤖 AI Agent Mode
+# Direct natural language chat
+cargo run -- ai-agent
 ```
-
-**Example Commands:**
-```
-🤖 Perintah: Cek status kebun
-🤖 Perintah: Siram tanaman Tomat-Saya
-🤖 Perintah: Siram semua tanaman yang kering
-🤖 Perintah: Berikan rekomendasi
-🤖 Perintah: Tambah tanaman tomat bernama Test-Plant
-```
-
-Type `help` for more commands, `exit` to quit.
 
 ## 📚 Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design & architecture
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Backend API details
-
-## 🎯 Use Cases
-
-### Home Gardening
-- Monitor indoor plants
-- Automate watering schedule
-- Track plant health over time
-
-### Small Farm
-- Manage multiple plant types
-- Weather-aware irrigation
-- Export data for analysis
-
-### Education
-- Learn IoT development
-- Understand sensor integration
-- Practice full-stack development
-
-### Prototyping
-- Test smart farming concepts
-- Develop custom plant profiles
-- Integrate with other systems
-
-## 🛠️ Technology Stack
-
-- **Backend:** Python 3.8+, FastAPI, SQLite
-- **Real-Time:** WebSockets, Asyncio
-- **Frontend:** HTML5, JavaScript, Chart.js
-- **CLI:** Rich, Questionary
-- **Hardware:** GPIO (Raspberry Pi), I2C sensors
-
-## 📊 System Architecture
-
-```
-CLI Interface ──┐
-                ├──► Core Engine ──► Database (SQLite)
-Web Dashboard ──┘         │
-                          ├──► Weather API
-                          ├──► Hardware Layer
-                          └──► WebSocket Hub
-                                    │
-                                    └──► Real-Time Updates
-```
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams.
+- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide.
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Internal data flow and async patterns.
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - REST & WebSocket API details.
+- **[AI_PROVIDER_GUIDE.md](AI_PROVIDER_GUIDE.md)** - Configuring Gemini and other AI models.
 
 ## 🔧 Configuration
 
-### Plant Rules (`plants.yaml`)
-```yaml
-tomato:
-  water_interval_days: 1
-  min_moisture_level: 40.0
-  water_ml: 250
-  fertilizer_interval_days: 7
-  sun_hours: 6
-```
-
-### Weather API (`data/config.json`)
-```json
-{
-  "city": "Surabaya",
-  "api_key": "your_openweathermap_key"
-}
-```
-
-## 🧪 Testing
-
+All secrets and server settings are managed via `.env`:
 ```bash
-# Run basic tests
-python main.py stats
-
-# Test real-time system
-python main.py daemon  # Terminal 1
-python main.py serve   # Terminal 2
-
-# Export data
-python main.py stats --export data.csv
+PORT=8001
+GEMINI_API_KEY=your_key_here
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_password
 ```
-
-## 🌟 Screenshots
-
-### Web Dashboard
-- Real-time sensor monitoring
-- Live charts with auto-scroll
-- Mobile-responsive design
-
-### CLI Interface
-- Interactive menu system
-- Colorful terminal output
-- Task management
-
-### Daemon Mode
-- 24/7 monitoring logs
-- Auto-watering events
-- System alerts
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Open pull request
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Naufal Rizky**
-- Made with 💚 for smart farming enthusiasts
-
-## 🙏 Acknowledgments
-
-- OpenWeatherMap for weather API
-- FastAPI for amazing web framework
-- Chart.js for beautiful charts
-- Rich for terminal formatting
-
-## 📞 Support
-
-- GitHub Issues for bugs
-- Discussions for questions
-- Pull Requests for contributions
+**AgroCLI Team**
+Made with 💚 and **Rust** for smart farming enthusiasts.
 
 ---
-
 **Happy Farming! 🌱**

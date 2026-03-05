@@ -2,7 +2,37 @@
 
 All notable changes to AgroCLI project.
 
-## [1.2.0] - 2026-03-04 (LATEST)
+## [1.3.0] - 2026-03-05 (LATEST)
+
+### 📊 Web Dashboard & Mobile Excellence
+
+#### Added
+- **Full Mobile Responsiveness**
+  - Premium glassmorphic design that adapts to all screen sizes.
+  - Stackable headers and controls for small touch screens.
+  - Dynamic typography scaling.
+  - Responsive charts with optimized axis labels for mobile.
+- **Enhanced Data Management**
+  - CSV Export feature for historical sensor data.
+  - 7-day historical trend viewing.
+  - Manual watering and threshold setting from web UI.
+- **Architecture Migration**
+  - Complete migration from Python/FastAPI to high-performance Rust/Axum.
+  - Direct async broadcasting via internal channels.
+  - Integrated AI Agent with tool-calling support.
+
+#### Changed
+- Migrated core engine to Rust for significantly better performance.
+- Replaced HTTP-based internal communication with direct memory-based async channels.
+- Updated TUI with premium RGB colors and improved layout.
+
+#### Security
+- Basic Authentication for API endpoints and history access.
+- Secure environment variable management via `.env`.
+
+---
+
+## [1.2.0] - 2026-03-04
 
 ### 🎨 TUI Enhancement & UX Improvements
 

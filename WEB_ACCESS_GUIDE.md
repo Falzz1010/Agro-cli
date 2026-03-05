@@ -219,5 +219,5 @@ You'll need to set up:
 
 ---
 
-**Version:** 1.2.0  
-**Last Updated:** March 4, 2026
+**Version:** 1.3.0  
+**Last Updated:** March 5, 2026

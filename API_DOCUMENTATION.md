@@ -1,41 +1,48 @@
-# 📡 AgroCLI API Documentation
+# 📡 AgroCLI Edge API Documentation
 
 ## Base URL
 ```
-http://localhost:8000
+http://localhost:8001
 ```
+
+> [!IMPORTANT]
+> Some endpoints require **Basic Authentication**. Use the credentials defined in your `.env` file (`ADMIN_USERNAME` and `ADMIN_PASSWORD`).
 
 ## WebSocket Endpoint
 
 ### Connect to Real-Time Updates
 ```
-ws://localhost:8000/ws
+ws://localhost:8001/ws
 ```
 
-**Message Types:**
+**Message Format (Server → Client):**
+The server broadcasts messages as JSON strings.
+
+**1. Sensor Update**
 ```json
 {
-  "type": "sensor_update",
-  "timestamp": "11:30:15",
-  "plant_name": "Tomat-Saya",
-  "moisture": 51.6,
-  "temperature": 32.5,
-  "humidity": 77.2
+  "type": "SensorUpdate",
+  "data": {
+    "plant_name": "Tomato-1",
+    "moisture": 45.2,
+    "temperature": 28.5,
+    "humidity": 65.3,
+    "timestamp": "14:23:45",
+    "min_moisture": 40.0,
+    "water_ml": 200
+  }
 }
+```
 
+**2. AI Agent Log**
+```json
 {
-  "type": "pump_event",
-  "timestamp": "11:30:20",
-  "plant_name": "Tomat-Saya",
-  "status": "on",
-  "duration": 3
-}
-
-{
-  "type": "system_alert",
-  "timestamp": "11:30:25",
-  "message": "Tomat-Saya moisture threshold breached",
-  "level": "warning"
+  "type": "AiLog",
+  "data": {
+    "timestamp": "14:24:00",
+    "query": "How is my garden?",
+    "response": "Your garden looks healthy! Tomato-1 is at 45.2% moisture."
+  }
 }
 ```
 
@@ -43,341 +50,68 @@ ws://localhost:8000/ws
 
 ## REST API Endpoints
 
-### 1. Get Garden Statistics
+### 1. Manual Watering
 ```http
-GET /api/stats
+POST /api/command/water
+Content-Type: application/json
 ```
-
-**Response:**
+**Request Body:**
 ```json
-{
-  "active_plants": 4,
-  "harvested_plants": 2,
-  "type_breakdown": {
-    "tomato": 2,
-    "chili": 2
-  }
-}
+{ "plant_name": "Tomato-1" }
 ```
 
----
-
-### 2. Get All Active Plants
+### 2. Update Plant Settings
 ```http
-GET /api/plants
+POST /api/command/settings
+Content-Type: application/json
 ```
-
-**Response:**
-```json
-[
-  {
-    "name": "Tomat-Saya",
-    "plant_type": "tomato",
-    "planted_date": "2026-02-20",
-    "last_watered": "2026-02-28",
-    "last_fertilized": "2026-02-25"
-  }
-]
-```
-
----
-
-### 3. Get Plant Details
-```http
-GET /api/plants/{plant_name}
-```
-
-**Response:**
-```json
-{
-  "name": "Tomat-Saya",
-  "plant_type": "tomato",
-  "planted_date": "2026-02-20",
-  "last_watered": "2026-02-28",
-  "last_fertilized": "2026-02-25",
-  "status": "active"
-}
-```
-
----
-
-### 4. Trigger Pump (Water Plant)
-```http
-POST /api/water/{plant_name}
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Pump activated for Tomat-Saya"
-}
-```
-
----
-
-### 5. Get Telemetry Data
-```http
-GET /api/telemetry?limit=30
-```
-
-**Query Parameters:**
-- `limit` (optional): Number of records to return (default: 30)
-
-**Response:**
-```json
-[
-  {
-    "plant_name": "Tomat-Saya",
-    "soil_moisture": 51.6,
-    "temperature": 32.5,
-    "humidity": 77.2,
-    "timestamp": "2026-02-28 11:30:15"
-  }
-]
-```
-
----
-
-### 6. Broadcast Sensor Data (Internal)
-```http
-POST /api/broadcast/sensor
-```
-
 **Request Body:**
 ```json
 {
-  "plant_name": "Tomat-Saya",
-  "moisture": 51.6,
-  "temperature": 32.5,
-  "humidity": 77.2
+  "plant_name": "Tomato-1",
+  "min_moisture": 45.0,
+  "water_ml": 250
 }
 ```
 
-**Response:**
-```json
-{
-  "status": "broadcasted"
-}
-```
-
----
-
-### 7. Broadcast Pump Event (Internal)
+### 3. Delete Plant
 ```http
-POST /api/broadcast/pump
+POST /api/command/delete
+Content-Type: application/json
 ```
-
 **Request Body:**
 ```json
-{
-  "plant_name": "Tomat-Saya",
-  "status": "on",
-  "duration": 3
-}
+{ "plant_name": "Tomato-1" }
 ```
 
-**Response:**
-```json
-{
-  "status": "broadcasted"
-}
-```
-
----
-
-### 8. Broadcast System Alert (Internal)
+### 4. Get Sensor History
 ```http
-POST /api/broadcast/alert
+GET /api/history/{plant_name}?hours=24
 ```
+**Parameters:**
+- `hours` (Query): Number of hours to retrieve (default: 24).
 
-**Request Body:**
-```json
-{
-  "message": "System alert message",
-  "level": "info"
-}
+### 5. Export Data to CSV
+```http
+GET /api/export/{plant_name}
 ```
-
-**Levels:** `info`, `warning`, `error`
-
-**Response:**
-```json
-{
-  "status": "broadcasted"
-}
-```
+> [!NOTE]
+> This endpoint triggers a direct browser download. It requires Basic Authentication.
 
 ---
 
-## Interactive API Documentation
+## Internal Broadcast Endpoints (Daemon/AI Agent)
 
-FastAPI provides automatic interactive API documentation:
+These endpoints are used for high-frequency internal broadcasting. Note that the Rust engine uses internal async channels preferentially.
 
-### Swagger UI
-```
-http://localhost:8000/docs
-```
-
-### ReDoc
-```
-http://localhost:8000/redoc
-```
+- `POST /api/broadcast/sensor`
+- `POST /api/broadcast/ai`
 
 ---
 
-## Error Responses
-
-All endpoints return standard error responses:
-
-```json
-{
-  "status": "error",
-  "message": "Error description"
-}
-```
-
-**HTTP Status Codes:**
-- `200` - Success
-- `400` - Bad Request
-- `404` - Not Found
-- `500` - Internal Server Error
+## Security
+- **Auth**: Basic Authentication is enforced on `/api/export` and potentially other sensitive management routes.
+- **CORS**: Permissive CORS is enabled for development ease.
 
 ---
-
-## Rate Limiting
-
-Currently no rate limiting is implemented. For production use, consider adding rate limiting middleware.
-
----
-
-## Authentication
-
-Currently no authentication is required. For production use, consider adding:
-- API Key authentication
-- JWT tokens
-- OAuth2
-
----
-
-## CORS
-
-CORS is enabled for all origins by default. For production, configure specific allowed origins in `web/server.py`.
-
----
-
-## Example Usage
-
-### Python
-```python
-import requests
-
-# Get garden stats
-response = requests.get("http://localhost:8000/api/stats")
-print(response.json())
-
-# Water a plant
-response = requests.post("http://localhost:8000/api/water/Tomat-Saya")
-print(response.json())
-```
-
-### JavaScript
-```javascript
-// Get garden stats
-fetch('http://localhost:8000/api/stats')
-  .then(response => response.json())
-  .then(data => console.log(data));
-
-// Water a plant
-fetch('http://localhost:8000/api/water/Tomat-Saya', {
-  method: 'POST'
-})
-  .then(response => response.json())
-  .then(data => console.log(data));
-```
-
-### cURL
-```bash
-# Get garden stats
-curl http://localhost:8000/api/stats
-
-# Water a plant
-curl -X POST http://localhost:8000/api/water/Tomat-Saya
-```
-
----
-
-## WebSocket Client Example
-
-### JavaScript
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws');
-
-ws.onopen = () => {
-  console.log('Connected to AgroCLI');
-};
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log('Received:', data);
-  
-  if (data.type === 'sensor_update') {
-    console.log(`${data.plant_name}: ${data.moisture}% moisture`);
-  }
-};
-
-ws.onerror = (error) => {
-  console.error('WebSocket error:', error);
-};
-
-ws.onclose = () => {
-  console.log('Disconnected from AgroCLI');
-};
-```
-
-### Python
-```python
-import asyncio
-import websockets
-import json
-
-async def listen():
-    uri = "ws://localhost:8000/ws"
-    async with websockets.connect(uri) as websocket:
-        while True:
-            message = await websocket.recv()
-            data = json.loads(message)
-            print(f"Received: {data}")
-
-asyncio.run(listen())
-```
-
----
-
-## Integration Examples
-
-### Home Assistant
-```yaml
-sensor:
-  - platform: rest
-    resource: http://localhost:8000/api/telemetry?limit=1
-    name: Garden Moisture
-    value_template: '{{ value_json[0].soil_moisture }}'
-    unit_of_measurement: '%'
-```
-
-### Node-RED
-Use HTTP Request node to call API endpoints and WebSocket node for real-time updates.
-
-### ESP32/Arduino
-```cpp
-#include <HTTPClient.h>
-
-void waterPlant(String plantName) {
-  HTTPClient http;
-  String url = "http://192.168.1.100:8000/api/water/" + plantName;
-  http.begin(url);
-  int httpCode = http.POST("");
-  http.end();
-}
-```
+**AgroCLI Edge - High Performance. Real-Time. Secure.**
