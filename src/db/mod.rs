@@ -82,6 +82,18 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        // IoT Reliability: Pending alerts for offline-first
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS pending_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                message TEXT NOT NULL,
+                retry_count INTEGER DEFAULT 0
+            )",
+        )
+        .execute(&self.pool)
+        .await?;
+
         Ok(())
     }
 
@@ -115,7 +127,7 @@ impl Database {
     }
 
     /// Retrieves all plants currently marked as 'active'.
-    pub async fn get_all_active_plants(&self) -> Result<Vec<Plant>, DbError> {
+    pub async fn active_plants(&self) -> Result<Vec<Plant>, DbError> {
         let rows = sqlx::query_as::<_, Plant>(
             "SELECT name, plant_type, planted_date, last_watered, last_fertilized, min_moisture, water_ml 
              FROM plants WHERE status = 'active'",
@@ -144,7 +156,7 @@ impl Database {
     }
 
     /// Returns a summary of garden statistics.
-    pub async fn get_garden_stats(&self) -> Result<serde_json::Value, DbError> {
+    pub async fn garden_stats(&self) -> Result<serde_json::Value, DbError> {
         let active_count: i32 =
             sqlx::query_scalar("SELECT COUNT(*) FROM plants WHERE status = 'active'")
                 .fetch_one(&self.pool)
@@ -215,7 +227,7 @@ impl Database {
 
     /// Retrieves the most recent sensor reading for each active plant.
     #[allow(clippy::cast_possible_truncation)]
-    pub async fn get_latest_sensor_data(&self) -> Result<Vec<crate::web::SensorData>, DbError> {
+    pub async fn latest_sensor_data(&self) -> Result<Vec<crate::web::SensorData>, DbError> {
         // This query gets the latest log for each plant that is currently active.
         let rows = sqlx::query(
             r"
@@ -289,7 +301,7 @@ impl Database {
 
     /// Retrieves recent AI logs.
     #[allow(dead_code)]
-    pub async fn get_recent_ai_logs(&self, limit: i32) -> Result<Vec<crate::web::AiLog>, DbError> {
+    pub async fn recent_ai_logs(&self, limit: i32) -> Result<Vec<crate::web::AiLog>, DbError> {
         let rows = sqlx::query(
             "SELECT timestamp, query, response FROM ai_logs ORDER BY id DESC LIMIT ?",
         )
@@ -323,7 +335,7 @@ impl Database {
     /// * `plant_name` - The name of the plant to query.
     /// * `hours` - Number of hours of history to fetch (e.g., 24 for 1 day, 168 for 7 days).
     #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
-    pub async fn get_sensor_history(
+    pub async fn sensor_history(
         &self,
         plant_name: &str,
         hours: i32,
@@ -395,5 +407,41 @@ impl Database {
             .await?;
 
         Ok(result.rows_affected() > 0)
+    }
+
+    // ── IoT Reliability: Alert Queueing ──────────────────────────────
+
+    /// Queues an alert for later delivery.
+    pub async fn queue_alert(&self, message: &str) -> Result<(), DbError> {
+        let now = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        sqlx::query("INSERT INTO pending_alerts (timestamp, message) VALUES (?, ?)")
+            .bind(now)
+            .bind(message)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    /// Retrieves all pending alerts.
+    pub async fn pending_alerts(&self) -> Result<Vec<(i64, String)>, DbError> {
+        use sqlx::Row;
+        let rows = sqlx::query("SELECT id, message FROM pending_alerts ORDER BY id ASC")
+            .fetch_all(&self.pool)
+            .await?;
+        let alerts = rows
+            .into_iter()
+            .map(|row| (row.get("id"), row.get("message")))
+            .collect();
+
+        Ok(alerts)
+    }
+
+    /// Deletes a pending alert after successful delivery.
+    pub async fn delete_alert(&self, id: i64) -> Result<(), DbError> {
+        sqlx::query("DELETE FROM pending_alerts WHERE id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 }

@@ -41,7 +41,7 @@ impl CareType {
 /// Fetches the current weather condition and temperature for a city.
 ///
 /// Returns `Some((condition, temp))` on success.
-pub async fn get_weather(city: &str, api_key: &str) -> Option<(String, f32)> {
+pub async fn weather(city: &str, api_key: &str) -> Option<(String, f32)> {
     let url = format!(
         "http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     );

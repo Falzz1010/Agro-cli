@@ -1,6 +1,26 @@
 {
   "version": 1,
   "skills": {
+    "coding-guidelines": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "5aec8481de78884af32ee3ac1efda3c0d355b2ca7c46717dc6ce5f5f1d476b88"
+    },
+    "domain-iot": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "5742cf568b68d8e6c23845dd92a81b3914a491e30055546635c1aefb449faeb7"
+    },
+    "domain-web": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "d149408567c4daeb43fcf71fd516060f6fb7dfb831c49142a17ffe6c1d1d3531"
+    },
+    "m10-performance": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "6945acaf86bd024e6cade6b71d23026e4969909592eb12ea03e75ed6d3b3a25e"
+    },
     "rust-async-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",

@@ -15,13 +15,11 @@ use crossterm::event::{self, Event, KeyCode};
 use tokio::task::JoinSet;
 use tokio::time::{sleep, Duration};
 use tokio_util::sync::CancellationToken;
-use tracing::{info, error, instrument};
-use tracing_subscriber::{fmt, EnvFilter, prelude::*};
-
-use crate::core::{CareType, calculate_today_tasks, get_weather};
+use tracing::{info, error, warn, instrument};
+use crate::core::{CareType, calculate_today_tasks, weather};
 use crate::db::Database;
 use crate::hardware::{read_humidity, read_soil_moisture, read_temperature, water_plant};
-use crate::telegram::{run_bot as start_telegram_bot, send_telegram_alert};
+use crate::telegram::{run_bot as start_telegram_bot, send_telegram_alert, process_alert_queue};
 use crate::web::serve as start_web_server;
 
 /// Checks if the 'q' key has been pressed in a non-blocking way.
@@ -37,7 +35,7 @@ fn should_exit() -> bool {
     false
 }
 
-const VERSION: &str = "1.2.0";
+const VERSION: &str = "1.3.4";
 const BANNER: &str = r"
     █████╗  ██████╗ ██████╗  ██████╗  ██████╗██╗     ██╗
    ██╔══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔════╝██║     ██║
@@ -107,11 +105,15 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize tracing
-    tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
-        .init();
+    // Initialize tracing - Redirect to file to avoid TUI interference
+    let file_appender = std::fs::File::create("agrocli.log")?;
+    let subscriber = tracing_subscriber::fmt()
+        .with_writer(std::sync::Mutex::new(file_appender))
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into()))
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
 
     info!("AgroCLI starting up...");
 
@@ -140,6 +142,7 @@ async fn main() -> Result<()> {
     db.init().await.context("Failed to initialize database schema")?;
 
     let (tx, _rx) = tokio::sync::broadcast::channel(100);
+
     let state = crate::web::AppState {
         tx,
         db: Arc::clone(&db),
@@ -165,7 +168,7 @@ async fn main() -> Result<()> {
         }
         Some(Commands::Today { city: _, mark_done }) => {
             let active_plants = db
-                .get_all_active_plants()
+                .active_plants()
                 .await
                 .context("Failed to get plants")?;
             let tasks = calculate_today_tasks(&active_plants, None, None);
@@ -260,6 +263,12 @@ async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &Cancellat
         });
     }
 
+    // Start Alert Queue Processor (IoT Reliability)
+    let alert_db = Arc::clone(&state.db);
+    tokio::spawn(async move {
+        process_alert_queue(alert_db).await;
+    });
+
     let api_key = env::var("WEATHER_API_KEY").unwrap_or_else(|_| "default_key".to_string());
     let city = env::var("CITY").unwrap_or_else(|_| "Surabaya".to_string());
     
@@ -271,11 +280,23 @@ async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &Cancellat
         
         println!("\nCycle Check: {}", chrono::Local::now().format("%H:%M:%S"));
         info!("Starting automation cycle...");
-        let weather_info = get_weather(&city, &api_key).await;
+        
+        // IoT Reliability: Retry logic for weather API (Layer 3 constraint)
+        let mut weather_info = None;
+        for attempt in 1..=3 {
+            if let Some(w) = weather(&city, &api_key).await {
+                weather_info = Some(w);
+                break;
+            }
+            
+            warn!("Weather API attempt {} failed, retrying...", attempt);
+            sleep(Duration::from_secs(attempt * 2)).await;
+        }
+
         let weather_cond = weather_info.as_ref().map(|(cond, _)| cond.as_str());
         
         let active_plants = state.db
-            .get_all_active_plants()
+            .active_plants()
             .await
             .context("Failed to get plants")?;
             
@@ -385,8 +406,8 @@ async fn process_plant_automation(
         water_plant(name, 3).await;
         state.db.update_care(name, CareType::Water).await?;
 
-        // Send Telegram Alert
-        let _ = send_telegram_alert(&alert_msg).await;
+        // Send Telegram Alert (Offline-First Ready)
+        let _ = send_telegram_alert(&state.db, &alert_msg).await;
     } else {
         println!(
             "{} {}: Moisture {:.1}% ({})",
@@ -409,7 +430,7 @@ async fn process_plant_automation(
             "— please fertilize!".bright_white()
         );
         info!(plant = %name, "Fertilizer is due");
-        let _ = send_telegram_alert(&fert_msg).await;
+        let _ = send_telegram_alert(&state.db, &fert_msg).await;
     }
 
     Ok(())

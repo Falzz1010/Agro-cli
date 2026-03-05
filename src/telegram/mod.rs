@@ -1,4 +1,5 @@
 use std::env;
+use std::time::Duration;
 use std::fmt::Write; // Added for efficient string building
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
@@ -152,7 +153,7 @@ async fn send_status_report(
     chat_id: ChatId,
     db: &Arc<Database>,
 ) -> Result<(), teloxide::RequestError> {
-    let plants = db.get_all_active_plants().await.unwrap_or_default();
+    let plants = db.active_plants().await.unwrap_or_default();
     if plants.is_empty() {
         bot.send_message(chat_id, "🪴 Your garden is empty.")
             .await?;
@@ -195,7 +196,7 @@ async fn send_weather_info(bot: &Bot, chat_id: ChatId) -> Result<(), teloxide::R
         return Ok(());
     }
 
-    match crate::core::get_weather(&city, &api_key).await {
+    match crate::core::weather(&city, &api_key).await {
         Some((cond, temp)) => {
             let icon = match cond.to_lowercase().as_str() {
                 c if c.contains("rain") => "🌧",
@@ -225,7 +226,7 @@ async fn send_watering_menu(
     chat_id: ChatId,
     db: &Arc<Database>,
 ) -> Result<(), teloxide::RequestError> {
-    let plants = db.get_all_active_plants().await.unwrap_or_default();
+    let plants = db.active_plants().await.unwrap_or_default();
     if plants.is_empty() {
         bot.send_message(chat_id, "🪴 No plants to water.").await?;
         return Ok(());
@@ -250,7 +251,7 @@ async fn send_watering_menu(
     Ok(())
 }
 
-pub async fn send_telegram_alert(message: &str) -> Result<()> {
+pub async fn send_telegram_alert(db: &Database, message: &str) -> Result<()> {
     let token = env::var("TELEGRAM_BOT_TOKEN");
     let chat_id = env::var("TELEGRAM_CHAT_ID");
 
@@ -258,7 +259,7 @@ pub async fn send_telegram_alert(message: &str) -> Result<()> {
         let bot = Bot::new(t);
 
         // If it's a critical alert, add a button
-        if message.contains("LOW") {
+        let request = if message.contains("LOW") || message.contains("DUE") {
             let plant_name = message
                 .split(':')
                 .next()
@@ -275,12 +276,48 @@ pub async fn send_telegram_alert(message: &str) -> Result<()> {
             bot.send_message(c, message)
                 .parse_mode(ParseMode::Html)
                 .reply_markup(keyboard)
-                .await?;
         } else {
             bot.send_message(c, message)
                 .parse_mode(ParseMode::Html)
-                .await?;
+        };
+
+        // IoT Reliability: Offline-first queueing
+        match request.await {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                // Silenced to info to avoid TUI/Log clutter since it's queued anyway
+                info!("Telegram delivery failed ({}), message queued locally.", e);
+                db.queue_alert(message).await.map_err(|e| anyhow::anyhow!(e))
+            }
         }
+    } else {
+        info!("Telegram config missing, alert queued locally.");
+        db.queue_alert(message).await.map_err(|e| anyhow::anyhow!(e))
     }
+}
+
+/// Background task to process the pending alert queue.
+pub async fn process_alert_queue(db: Arc<Database>) {
+    loop {
+        let alerts = db.pending_alerts().await.unwrap_or_default();
+        if !alerts.is_empty() {
+            info!("Processing {} pending alerts...", alerts.len());
+            for (id, msg) in alerts {
+                if send_direct(&msg).await.is_ok() {
+                    let _ = db.delete_alert(id).await;
+                } else {
+                    break;
+                }
+            }
+        }
+        tokio::time::sleep(Duration::from_secs(60)).await;
+    }
+}
+
+async fn send_direct(message: &str) -> Result<()> {
+    let token = env::var("TELEGRAM_BOT_TOKEN").context("No token")?;
+    let chat_id = env::var("TELEGRAM_CHAT_ID").context("No chat id")?;
+    let bot = Bot::new(token);
+    bot.send_message(chat_id, message).await?;
     Ok(())
 }

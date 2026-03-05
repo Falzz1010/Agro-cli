@@ -122,7 +122,7 @@ pub async fn run_agent_mode(state: std::sync::Arc<crate::web::AppState>) -> Resu
     println!();
     
     // Step 2: Get API Key (if not simulation)
-    let api_key = get_api_key_for_provider(&provider)?;
+    let api_key = api_key_for_provider(&provider)?;
     
     // Show selected configuration
     println!("{}", "  ┌─────────────────────────────────────────────────────────────┐".bright_cyan());
@@ -223,12 +223,11 @@ fn display_ai_response(response: &str) {
 /// Helper function to wrap text to a specific width
 fn wrap_text(text: &str, width: usize) -> Vec<String> {
     let mut lines = Vec::new();
-    let mut current_line = String::new();
+    let mut current_line = String::with_capacity(width);
     
     for word in text.split_whitespace() {
-        if current_line.len() + word.len() + 1 > width && !current_line.is_empty() {
-            lines.push(current_line.clone());
-            current_line.clear();
+        if !current_line.is_empty() && current_line.len() + word.len() + 1 > width {
+            lines.push(std::mem::take(&mut current_line));
         }
         
         if !current_line.is_empty() {
@@ -331,7 +330,7 @@ async fn process_gemini_command(
                 
                 let tool_res = match call.name.as_str() {
                     "get_garden_status" => {
-                        let plants = db.get_all_active_plants().await?;
+                        let plants = db.active_plants().await?;
                         serde_json::to_value(plants)?
                     }
                     "water_plant_action" => {
@@ -431,7 +430,7 @@ async fn simulated_response(state: &crate::web::AppState, input: &str) -> Result
         println!("{}", "  🛠️  [SIMULATION] Querying database for plant status...".bright_black().italic());
         println!();
         
-        let plants = db.get_all_active_plants().await?;
+        let plants = db.active_plants().await?;
         let resp = format!(
             "Saat ini ada {} tanaman aktif. Semua parameter terlihat normal di database.",
             plants.len()
@@ -516,7 +515,7 @@ fn select_provider() -> Result<AiProvider> {
         .prompt()?)
 }
 
-fn get_api_key_for_provider(provider: &AiProvider) -> Result<Option<String>> {
+fn api_key_for_provider(provider: &AiProvider) -> Result<Option<String>> {
     if matches!(provider, AiProvider::Simulation) {
         return Ok(None);
     }

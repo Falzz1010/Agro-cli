@@ -14,7 +14,7 @@ thiserror = "1.0.58"
 dotenvy = "0.15.7"
 sqlx = { version = "0.7.4", features = ["runtime-tokio", "sqlite", "macros", "chrono"] }
 axum = { version = "0.7.5", features = ["ws", "json"] }
-tower-http = { version = "0.5.2", features = ["fs", "cors", "auth"] }
+tower-http = { version = "0.5.2", features = ["fs", "cors", "auth", "trace"] }
 inquire = "0.7.2"
 ratatui = "0.26.1"
 crossterm = "0.27.0"

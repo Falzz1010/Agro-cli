@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::fmt::Write; // Added for efficient string building
 use tokio_util::sync::CancellationToken;
 
@@ -14,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
 
 /// Data structure for broadcasting sensor readings.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -81,6 +83,41 @@ pub struct DeleteCommand {
     pub plant_name: String,
 }
 
+/// Unified error type for the web module.
+pub enum AppError {
+    NotFound(String),
+    Database(String),
+    Internal(String),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        let (status, error_msg) = match self {
+            Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
+            Self::Database(msg) | Self::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+        };
+
+        let body = Json(serde_json::json!({
+            "error": true,
+            "message": error_msg,
+        }));
+
+        (status, body).into_response()
+    }
+}
+
+// Convert any error to AppError::Internal
+impl<E> From<E> for AppError
+where
+    E: std::error::Error,
+{
+    fn from(err: E) -> Self {
+        Self::Internal(err.to_string())
+    }
+}
+
+type WebResult<T> = Result<T, AppError>;
+
 /// Endpoint for the Daemon to POST live sensor updates.
 async fn broadcast_sensor(
     axum::extract::State(state): axum::extract::State<AppState>,
@@ -100,13 +137,10 @@ async fn broadcast_ai(
 }
 
 /// Endpoint for the Dashboard to trigger manual watering.
-async fn manual_water(Json(payload): Json<WaterCommand>) -> impl IntoResponse {
-    println!(
-        "🚿 [WEB] Remote watering triggered for: {}",
-        payload.plant_name
-    );
+async fn manual_water(Json(payload): Json<WaterCommand>) -> WebResult<impl IntoResponse> {
+    tracing::info!(plant = %payload.plant_name, "Remote watering triggered via web");
     crate::hardware::water_plant(&payload.plant_name, 3).await;
-    Json(serde_json::json!({ "status": "executed", "plant": payload.plant_name }))
+    Ok(Json(serde_json::json!({ "status": "executed", "plant": payload.plant_name })))
 }
 
 /// Returns historical sensor data for a plant.
@@ -114,23 +148,16 @@ async fn get_history(
     axum::extract::State(state): axum::extract::State<AppState>,
     Path(plant_name): Path<String>,
     Query(params): Query<HashMap<String, String>>,
-) -> impl IntoResponse {
+) -> WebResult<impl IntoResponse> {
     let hours: i32 = params
         .get("hours")
         .and_then(|h| h.parse().ok())
         .unwrap_or(24);
 
-    match state.db.get_sensor_history(&plant_name, hours).await {
-        Ok(data) => Json(serde_json::json!({ "plant_name": plant_name, "hours": hours, "data": data })),
-        Err(e) => {
-            tracing::error!(plant = %plant_name, error = %e, "Failed to fetch history");
-            Json(serde_json::json!({ 
-                "error": true, 
-                "message": e.to_string(),
-                "plant_name": plant_name 
-            }))
-        }
-    }
+    let data = state.db.sensor_history(&plant_name, hours).await
+        .map_err(|e| AppError::Database(e.to_string()))?;
+        
+    Ok(Json(serde_json::json!({ "plant_name": plant_name, "hours": hours, "data": data })))
 }
 
 /// Exports historical sensor data as a CSV file.
@@ -139,32 +166,51 @@ async fn export_history(
     Path(plant_name): Path<String>,
 ) -> impl IntoResponse {
     // Fetch a large window of history for export (e.g., last 30 days = 720 hours)
-    match state.db.get_sensor_history(&plant_name, 720).await {
+    let db = Arc::clone(&state.db);
+    let p_name = plant_name.clone();
+    
+    match db.sensor_history(&p_name, 720).await {
         Ok(data) => {
-            let mut csv_data = String::from("Timestamp,Moisture (%),Temperature (C),Humidity (%)\n");
-            for point in data {
-                let _ = writeln!(
-                    csv_data,
-                    "{timestamp},{moisture:.1},{temperature:.1},{humidity:.1}",
-                    timestamp = point.timestamp,
-                    moisture = point.moisture,
-                    temperature = point.temperature,
-                    humidity = point.humidity
-                );
+            // Move string building to a blocking task to avoid stalling the async executor
+            let csv_res = tokio::task::spawn_blocking(move || {
+                // Pre-allocate capacity: ~60 bytes per row * data.len() + header
+                let mut csv_string = String::with_capacity(data.len() * 60 + 60);
+                csv_string.push_str("Timestamp,Moisture (%),Temperature (C),Humidity (%)\n");
+                
+                for point in data {
+                    let _ = writeln!(
+                        csv_string,
+                        "{timestamp},{moisture:.1},{temperature:.1},{humidity:.1}",
+                        timestamp = point.timestamp,
+                        moisture = point.moisture,
+                        temperature = point.temperature,
+                        humidity = point.humidity
+                    );
+                }
+                csv_string
+            }).await;
+
+            match csv_res {
+                Ok(csv_data) => {
+                    let headers = [(
+                        header::CONTENT_DISPOSITION,
+                        format!("attachment; filename=\"{plant_name}_sensor_logs.csv\""),
+                    )];
+                    (StatusCode::OK, headers, csv_data).into_response()
+                }
+                Err(e) => {
+                    tracing::error!(error = %e, "Background CSV generation failed");
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to generate CSV").into_response()
+                }
             }
-
-            let headers = [(
-                header::CONTENT_DISPOSITION,
-                format!("attachment; filename=\"{plant_name}_sensor_logs.csv\""),
-            )];
-
-            (StatusCode::OK, headers, csv_data).into_response()
         }
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error fetching data: {e}"),
-        )
-            .into_response(),
+        Err(e) => {
+            tracing::error!(plant = %plant_name, error = %e, "Error fetching export data");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Error fetching data: {e}"),
+            ).into_response()
+        }
     }
 }
 
@@ -172,12 +218,12 @@ async fn export_history(
 async fn delete_plant(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<DeleteCommand>,
-) -> impl IntoResponse {
-    println!("🗑️ [WEB] Delete requested for: {}", payload.plant_name);
-    match state.db.delete_plant(&payload.plant_name).await {
-        Ok(true) => Json(serde_json::json!({ "status": "deleted", "plant": payload.plant_name })),
-        Ok(false) => Json(serde_json::json!({ "status": "not_found", "plant": payload.plant_name })),
-        Err(e) => Json(serde_json::json!({ "status": "error", "message": e.to_string() })),
+) -> WebResult<impl IntoResponse> {
+    tracing::info!(plant = %payload.plant_name, "Delete requested via web");
+    if state.db.delete_plant(&payload.plant_name).await? {
+        Ok(Json(serde_json::json!({ "status": "deleted", "plant": payload.plant_name })))
+    } else {
+        Err(AppError::NotFound(format!("Plant '{}' not found", payload.plant_name)))
     }
 }
 
@@ -185,21 +231,16 @@ async fn delete_plant(
 async fn update_settings(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<SettingsCommand>,
-) -> impl IntoResponse {
-    println!("⚙️ [WEB] Updating settings for: {}", payload.plant_name);
-    match state
+) -> WebResult<impl IntoResponse> {
+    tracing::info!(plant = %payload.plant_name, "Updating settings via web");
+    if state
         .db
         .update_plant_settings(&payload.plant_name, payload.min_moisture, payload.water_ml)
-        .await
+        .await?
     {
-        Ok(true) => Json(serde_json::json!({ "status": "updated", "plant": payload.plant_name })),
-        Ok(false) => {
-            Json(serde_json::json!({ "status": "not_found", "plant": payload.plant_name }))
-        }
-        Err(e) => {
-            println!("❌ [WEB] Failed to update settings: {e}");
-            Json(serde_json::json!({ "status": "error", "message": e.to_string() }))
-        }
+        Ok(Json(serde_json::json!({ "status": "updated", "plant": payload.plant_name })))
+    } else {
+        Err(AppError::NotFound(format!("Plant '{}' not found", payload.plant_name)))
     }
 }
 
@@ -215,7 +256,7 @@ async fn ws_handler(
 #[allow(clippy::collapsible_if)]
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
     // 1. Send initial sensor state
-    if let Ok(latest_data) = state.db.get_latest_sensor_data().await {
+    if let Ok(latest_data) = state.db.latest_sensor_data().await {
         for data in latest_data {
             let msg_obj = DashboardMessage::SensorUpdate(data);
             if let Ok(msg) = serde_json::to_string(&msg_obj) {
@@ -227,7 +268,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
     }
 
     // 2. Send initial AI logs
-    if let Ok(latest_logs) = state.db.get_recent_ai_logs(10).await {
+    if let Ok(latest_logs) = state.db.recent_ai_logs(10).await {
         for log in latest_logs {
             let msg_obj = DashboardMessage::AiLog(log);
             if let Ok(msg) = serde_json::to_string(&msg_obj) {
@@ -273,6 +314,7 @@ pub async fn serve(
         .route("/api/history/:plant_name", get(get_history))
         .route("/api/export/:plant_name", get(export_history))
         .with_state(state)
+        .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive());
 
     let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());

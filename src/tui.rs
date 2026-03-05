@@ -19,10 +19,10 @@ use ratatui::{
 use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
-use crate::core::{calculate_today_tasks, get_weather, load_rules, GardenTask};
+use crate::core::{calculate_today_tasks, load_rules, weather, GardenTask};
 use crate::hardware::{read_humidity, read_soil_moisture, read_temperature};
 
-const VERSION: &str = "1.2.0";
+const VERSION: &str = "1.3.4";
 
 const MENU_ITEMS: &[&str] = &[
     "🤖 AI Agent Mode",
@@ -256,7 +256,7 @@ impl App {
                 if let Ok(Some(plants)) = tokio::time::timeout(
                     Duration::from_millis(500),
                     async {
-                        let plants = db.get_all_active_plants().await.ok()?;
+                        let plants = db.active_plants().await.ok()?;
                         Some(plants)
                     }
                 ).await {
@@ -270,7 +270,7 @@ impl App {
                         tokio::spawn(async move {
                             let _ = tokio::time::timeout(
                                 Duration::from_millis(300),
-                                get_weather(&city_clone, &key_clone)
+                                weather(&city_clone, &key_clone)
                             ).await;
                         });
                         self.weather_last_fetch = Instant::now();
@@ -287,7 +287,7 @@ impl App {
                 let db = Arc::clone(&self.state.db);
                 if let Ok(Some(s)) = tokio::time::timeout(
                     Duration::from_millis(500),
-                    async { db.get_garden_stats().await.ok() }
+                    async { db.garden_stats().await.ok() }
                 ).await {
                     self.stats = s;
                 }
@@ -299,7 +299,7 @@ impl App {
                 let db = Arc::clone(&self.state.db);
                 if let Ok(Some(plants)) = tokio::time::timeout(
                     Duration::from_millis(500),
-                    async { db.get_all_active_plants().await.ok() }
+                    async { db.active_plants().await.ok() }
                 ).await {
                     self.sensors = plants.iter().map(|p| SensorRow {
                         name: p.name.clone(),
@@ -353,7 +353,7 @@ impl App {
         self.add_daemon_log("info", &format!("🔄 Cycle #{} - Checking plants...", self.daemon_cycle_count));
         
         let db = Arc::clone(&self.state.db);
-        match db.get_all_active_plants().await {
+        match db.active_plants().await {
             Ok(plants) if plants.is_empty() => {
                 self.add_daemon_log("warning", "⚠️  No active plants to monitor");
             }
@@ -400,6 +400,10 @@ impl App {
                         
                         // Update database
                         let _ = db.update_care(&plant.name, crate::core::CareType::Water).await;
+
+                        // Telegram Alert (v1.3.3)
+                        let alert_msg = format!("🚨 *{p_name}*: Moisture LOW ({moisture:.1}%). Pump triggered from TUI Console!", p_name = plant.name);
+                        let _ = crate::telegram::send_telegram_alert(&db, &alert_msg).await;
                     } else {
                         #[allow(clippy::cast_possible_truncation)]
                         let moisture_i = moisture as i32;
@@ -646,7 +650,7 @@ impl App {
     }
 
     async fn plant_list_for(&mut self, title: &str, action: Pending) {
-        match self.state.db.get_all_active_plants().await {
+        match self.state.db.active_plants().await {
             Ok(plants) if plants.is_empty() => self.go_msg("Info", "No active plants."),
             Ok(plants) => {
                 let names = plants.into_iter().map(|p| p.name).collect();
@@ -859,7 +863,7 @@ impl App {
 
         // Simple simulation mode responses
         let response = if user_input.to_lowercase().contains("status") || user_input.to_lowercase().contains("how") {
-            match self.state.db.get_all_active_plants().await {
+            match self.state.db.active_plants().await {
                 Ok(plants) if plants.is_empty() => {
                     "🌱 You don't have any active plants yet. Add some plants from the main menu!".to_string()
                 }
