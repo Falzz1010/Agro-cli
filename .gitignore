@@ -24,5 +24,7 @@ data/config.json
 
 
 # Added by cargo
-
 /target
+
+# Secrets
+.env
