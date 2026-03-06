@@ -24,7 +24,15 @@ impl Database {
     /// # Arguments
     /// * `database_url` - The connection string for the `SQLite` database.
     pub async fn new(database_url: &str) -> Result<Self, DbError> {
-        let pool = SqlitePool::connect(database_url).await?;
+        use std::str::FromStr;
+        let options = sqlx::sqlite::SqliteConnectOptions::from_str(database_url)?
+            .pragma("journal_mode", "WAL")
+            .pragma("synchronous", "NORMAL")
+            .pragma("temp_store", "MEMORY")
+            .pragma("cache_size", "-20000") // 20MB cache
+            .busy_timeout(std::time::Duration::from_secs(5));
+
+        let pool = SqlitePool::connect_with(options).await?;
         Ok(Self { pool })
     }
 
@@ -70,6 +78,11 @@ impl Database {
         )
         .execute(&self.pool)
         .await?;
+
+        // Index for faster history and latest data lookups
+        sqlx::query("CREATE INDEX IF NOT EXISTS idx_sensor_logs_plant_timestamp ON sensor_logs (plant_name, timestamp DESC)")
+            .execute(&self.pool)
+            .await?;
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS ai_logs (

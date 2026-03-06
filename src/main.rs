@@ -1,11 +1,3 @@
-mod ai;
-mod core;
-mod db;
-mod hardware;
-mod telegram;
-mod tui;
-mod web;
-
 use std::env;
 use std::sync::Arc;
 
@@ -16,11 +8,11 @@ use tokio::task::JoinSet;
 use tokio::time::{sleep, Duration};
 use tokio_util::sync::CancellationToken;
 use tracing::{info, error, warn, instrument};
-use crate::core::{CareType, calculate_today_tasks, weather};
-use crate::db::Database;
-use crate::hardware::{read_humidity, read_soil_moisture, read_temperature, water_plant};
-use crate::telegram::{run_bot as start_telegram_bot, send_telegram_alert, process_alert_queue};
-use crate::web::serve as start_web_server;
+use agrocli::core::{CareType, calculate_today_tasks, weather};
+use agrocli::db::Database;
+use agrocli::hardware::{read_humidity, read_soil_moisture, read_temperature, water_plant};
+use agrocli::telegram::{run_bot as start_telegram_bot, send_telegram_alert, process_alert_queue};
+use agrocli::web::serve as start_web_server;
 
 /// Checks if the 'q' key has been pressed in a non-blocking way.
 fn should_exit() -> bool {
@@ -37,12 +29,12 @@ fn should_exit() -> bool {
 
 const VERSION: &str = "1.3.4";
 const BANNER: &str = r"
-    █████╗  ██████╗ ██████╗  ██████╗  ██████╗██╗     ██╗
-   ██╔══██╗██╔════╝ ██╔══██╗██╔═══██╗██╔════╝██║     ██║
-   ███████║██║  ███╗██████╔╝██║   ██║██║     ██║     ██║
-   ██╔══██║██║   ██║██╔══██╗██║   ██║██║     ██║     ██║
-   ██║  ██║╚██████╔╝██║  ██║╚██████╔╝╚██████╗███████╗██║
-   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝╚══════╝╚═╝
+    â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•—     â–ˆâ–ˆâ•—
+   â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•”â•â•â•â•â• â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•”â•â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•”â•â•â•â•â•â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘
+   â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘
+   â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘
+   â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â•šâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘
+   â•šâ•â•  â•šâ•â• â•šâ•â•â•â•â•â• â•šâ•â•  â•šâ•â• â•šâ•â•â•â•â•â•  â•šâ•â•â•â•â•â•â•šâ•â•â•â•â•â•â•â•šâ•â•
 ";
 
 /// Displays the `AgroCLI` ASCII banner and version info.
@@ -59,7 +51,7 @@ fn display_banner() {
     );
     println!(
         "   Made with {} by {}",
-        "💚".green(),
+        "ðŸ’š".green(),
         "Naufal Rizky".bright_white().bold()
     );
     println!();
@@ -143,7 +135,7 @@ async fn main() -> Result<()> {
 
     let (tx, _rx) = tokio::sync::broadcast::channel(100);
 
-    let state = crate::web::AppState {
+    let state = agrocli::web::AppState {
         tx,
         db: Arc::clone(&db),
     };
@@ -153,7 +145,7 @@ async fn main() -> Result<()> {
     match cli.command {
         Some(Commands::Init) => {
             db.init().await.context("Failed to initialize database")?;
-            println!("🌱 AgroCLI Initialized!");
+            println!("ðŸŒ± AgroCLI Initialized!");
         }
         Some(Commands::Add { plant_type, name }) => {
             let success = db
@@ -161,9 +153,9 @@ async fn main() -> Result<()> {
                 .await
                 .context("Failed to add plant")?;
             if success {
-                println!("✅ Added {name} ({plant_type}) to your garden.");
+                println!("âœ… Added {name} ({plant_type}) to your garden.");
             } else {
-                println!("❌ A plant named '{name}' already exists.");
+                println!("âŒ A plant named '{name}' already exists.");
             }
         }
         Some(Commands::Today { city: _, mark_done }) => {
@@ -174,18 +166,18 @@ async fn main() -> Result<()> {
             let tasks = calculate_today_tasks(&active_plants, None, None);
 
             if tasks.is_empty() {
-                println!("✨ All caught up! No tasks needed today.");
+                println!("âœ¨ All caught up! No tasks needed today.");
                 return Ok(());
             }
 
             for task in &tasks {
                 let water_str = if task.needs_water {
-                    format!("💧 {}ml", task.water_ml)
+                    format!("ðŸ’§ {}ml", task.water_ml)
                 } else {
                     "OK".to_string()
                 };
                 let fert_str = if task.needs_fertilizer {
-                    "🌾 Yes"
+                    "ðŸŒ¾ Yes"
                 } else {
                     "OK"
                 };
@@ -208,7 +200,7 @@ async fn main() -> Result<()> {
                             .context("Failed to update fertilizer record")?;
                     }
                 }
-                println!("✅ All tasks marked as completed!");
+                println!("âœ… All tasks marked as completed!");
             }
         }
         Some(Commands::Interactive) | None => {
@@ -226,23 +218,23 @@ async fn main() -> Result<()> {
 }
 
 /// Runs the TUI in a loop, re-entering after external operations.
-async fn run_tui_loop(state: crate::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
-    match tui::run_tui(state, cancel_token.clone()).await? {
-        tui::ExitSignal::Quit => {
+async fn run_tui_loop(state: agrocli::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
+    match agrocli::tui::run_tui(state, cancel_token.clone()).await? {
+        agrocli::tui::ExitSignal::Quit => {
             cancel_token.cancel();
-            println!("Happy Farming! Goodbye. 👋");
+            println!("Happy Farming! Goodbye. 🌿");
         }
     }
     Ok(())
 }
 
 /// Helper function to run the daemon loop directly.
-async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
+async fn run_daemon_direct(state: agrocli::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
     
     info!("AgroCLI Daemon Activated.");
     println!(
         "{}",
-        "🔌 AgroCLI Daemon Activated. (Press 'q' to return to menu/exit)"
+        "ðŸ”Œ AgroCLI Daemon Activated. (Press 'q' to return to menu/exit)"
             .bright_green()
             .bold()
     );
@@ -293,7 +285,7 @@ async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &Cancellat
             sleep(Duration::from_secs(attempt * 2)).await;
         }
 
-        let weather_cond = weather_info.as_ref().map(|(cond, _)| cond.as_str());
+        let weather_cond = weather_info.as_ref().map(|(cond, _)| Arc::new(cond.clone()));
         
         let active_plants = state.db
             .active_plants()
@@ -304,7 +296,7 @@ async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &Cancellat
 
         for plant in active_plants {
             let state_inner = state.clone();
-            let w_cond = weather_cond.map(std::string::ToString::to_string);
+            let w_cond = weather_cond.clone();
             
             set.spawn(async move {
                 process_plant_automation(plant, state_inner, w_cond).await
@@ -326,7 +318,7 @@ async fn run_daemon_direct(state: crate::web::AppState, cancel_token: &Cancellat
 
 /// Helper function to run the web server directly.
 async fn run_web_direct(
-    state: crate::web::AppState,
+    state: agrocli::web::AppState,
     cancel_token: &CancellationToken,
     background: bool,
 ) -> Result<()> {
@@ -337,12 +329,12 @@ async fn run_web_direct(
     let display_host = if host == "0.0.0.0" { "127.0.0.1" } else { &host };
     
     info!(host = %host, port = %port, "Starting web dashboard");
-    println!("🌐 Starting Web Dashboard...");
+    println!("ðŸŒ Starting Web Dashboard...");
     println!("   Server binding to: {host}:{port}");
     println!("   Access in browser: http://{display_host}:{port}");
     
     if host == "0.0.0.0" {
-        println!("   💡 Note: Use 127.0.0.1 or localhost in your browser, not 0.0.0.0");
+        println!("   ðŸ’¡ Note: Use 127.0.0.1 or localhost in your browser, not 0.0.0.0");
     }
     
     let ct = cancel_token.clone();
@@ -353,7 +345,7 @@ async fn run_web_direct(
                 error!("Web server error: {}", e);
             }
         });
-        println!("✅ Dashboard is now running in the background.");
+        println!("âœ… Dashboard is now running in the background.");
     } else {
         start_web_server(state, ct).await?;
     }
@@ -363,9 +355,9 @@ async fn run_web_direct(
 
 #[instrument(skip(state))]
 async fn process_plant_automation(
-    plant: crate::core::Plant,
-    state: crate::web::AppState,
-    weather_cond: Option<String>,
+    plant: agrocli::core::Plant,
+    state: agrocli::web::AppState,
+    weather_cond: Option<Arc<String>>,
 ) -> Result<()> {
     let name = &plant.name;
     let moisture = read_soil_moisture(name);
@@ -375,7 +367,7 @@ async fn process_plant_automation(
     state.db.log_sensor_data(name, moisture, temp, humidity).await?;
 
     // Broadcast directly via Internal Channel (No HTTP overhead!)
-    let _ = state.tx.send(crate::web::DashboardMessage::SensorUpdate(crate::web::SensorData {
+    let _ = state.tx.send(agrocli::web::DashboardMessage::SensorUpdate(agrocli::web::SensorData {
         plant_name: name.clone(),
         moisture,
         temperature: temp,
@@ -387,15 +379,15 @@ async fn process_plant_automation(
 
     let tasks = calculate_today_tasks(
         std::slice::from_ref(&plant),
-        weather_cond.as_deref(),
+        weather_cond.as_deref().map(|s| s.as_str()),
         Some(moisture),
     );
 
     if !tasks.is_empty() && tasks[0].needs_water {
-        let alert_msg = format!("🚨 *{name}*: Moisture LOW ({moisture:.1}%). Triggering pump!");
+        let alert_msg = format!("ðŸš¨ *{name}*: Moisture LOW ({moisture:.1}%). Triggering pump!");
         println!(
             "{} {}: Moisture {} ({:.1}%). {}",
-            "🚨".red(),
+            "ðŸš¨".red(),
             name.bright_white().bold(),
             "LOW".red().bold(),
             moisture.to_string().red(),
@@ -411,7 +403,7 @@ async fn process_plant_automation(
     } else {
         println!(
             "{} {}: Moisture {:.1}% ({})",
-            "✅".green(),
+            "âœ…".green(),
             name.bright_white(),
             moisture,
             "OK".green().bold()
@@ -421,13 +413,13 @@ async fn process_plant_automation(
 
     // Fertilizer alert check
     if !tasks.is_empty() && tasks[0].needs_fertilizer {
-        let fert_msg = format!("🌾 *{name}*: Fertilizer is due! Please fertilize your plant.");
+        let fert_msg = format!("ðŸŒ¾ *{name}*: Fertilizer is due! Please fertilize your plant.");
         println!(
             "{} {}: {} {}",
-            "🌾".yellow(),
+            "ðŸŒ¾".yellow(),
             name.bright_white().bold(),
             "Fertilizer DUE".bright_yellow().bold(),
-            "— please fertilize!".bright_white()
+            "â€” please fertilize!".bright_white()
         );
         info!(plant = %name, "Fertilizer is due");
         let _ = send_telegram_alert(&state.db, &fert_msg).await;

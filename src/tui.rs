@@ -160,6 +160,9 @@ struct App {
     daemon_logs: Vec<DaemonLog>,
     daemon_running: bool,
     daemon_cycle_count: u32,
+    
+    // Performance: Only redraw when needed
+    needs_redraw: bool,
 }
 
 impl App {
@@ -199,6 +202,7 @@ impl App {
             daemon_logs: vec![],
             daemon_running: false,
             daemon_cycle_count: 0,
+            needs_redraw: true, // Initial draw
         }
     }
 
@@ -206,6 +210,7 @@ impl App {
         self.screen = Screen::Message;
         self.msg_title = title.into();
         self.msg_body = body.into();
+        self.needs_redraw = true;
     }
 
     fn go_sel(&mut self, title: &str, items: Vec<String>, action: Pending) {
@@ -214,6 +219,7 @@ impl App {
         self.sel_items = items;
         self.sel_idx = 0;
         self.pending = action;
+        self.needs_redraw = true;
     }
 
     fn go_inp(&mut self, title: &str, fields: Vec<Field>, action: Pending) {
@@ -222,6 +228,7 @@ impl App {
         self.inp_fields = fields;
         self.inp_focus = 0;
         self.pending = action;
+        self.needs_redraw = true;
     }
 
     fn go_cfm(&mut self, msg: &str, action: Pending) {
@@ -229,11 +236,13 @@ impl App {
         self.cfm_msg = msg.into();
         self.cfm_yes = false;
         self.pending = action;
+        self.needs_redraw = true;
     }
 
     fn back(&mut self) {
         self.screen = Screen::MainMenu;
         self.pending = Pending::None;
+        self.needs_redraw = true;
     }
 
     // ── Tick – refresh live data ────────────────────────────────────
@@ -278,6 +287,7 @@ impl App {
                     
                     let wc = self.weather.as_ref().map(|(c, _)| c.as_str());
                     self.tasks = calculate_today_tasks(&plants, wc, None);
+                    self.needs_redraw = true;
                 }
             }
             Screen::GardenStats if elapsed >= Duration::from_secs(2) => {
@@ -290,6 +300,7 @@ impl App {
                     async { db.garden_stats().await.ok() }
                 ).await {
                     self.stats = s;
+                    self.needs_redraw = true;
                 }
             }
             Screen::LiveSensor if elapsed >= Duration::from_secs(1) => {
@@ -307,12 +318,14 @@ impl App {
                         temperature: read_temperature(),
                         humidity: read_humidity(),
                     }).collect();
+                    self.needs_redraw = true;
                 }
             }
             Screen::DaemonMonitor if elapsed >= Duration::from_secs(5) && self.daemon_running => {
                 self.last_tick = Instant::now();
                 self.daemon_cycle_count += 1;
                 self.run_daemon_cycle().await;
+                self.needs_redraw = true;
             }
             _ => {}
         }
@@ -558,6 +571,7 @@ impl App {
             },
             Screen::Message => self.back(),
         }
+        self.needs_redraw = true;
     }
 
     // ── Menu select ─────────────────────────────────────────────────
@@ -2086,7 +2100,10 @@ pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToke
     let mut app = App::new(state, cancel_token);
 
     loop {
-        terminal.draw(|f| app.render(f))?;
+        if app.needs_redraw {
+            terminal.draw(|f| app.render(f))?;
+            app.needs_redraw = false;
+        }
 
         if let Some(signal) = app.exit_signal.take() {
             // Restore terminal before exiting
@@ -2096,7 +2113,7 @@ pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToke
             return Ok(signal);
         }
 
-        if event::poll(Duration::from_millis(100))?
+        if event::poll(Duration::from_millis(50))?
             && let Event::Key(key) = event::read()? {
                 app.handle_key(key).await;
         }
