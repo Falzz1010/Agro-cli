@@ -22,7 +22,7 @@ use tokio_util::sync::CancellationToken;
 use crate::core::{calculate_today_tasks, load_rules, weather, GardenTask};
 use crate::hardware::{read_humidity, read_soil_moisture, read_temperature};
 
-const VERSION: &str = "1.3.4";
+const VERSION: &str = "1.0.0";
 
 const MENU_ITEMS: &[&str] = &[
     "🤖 AI Agent Mode",
