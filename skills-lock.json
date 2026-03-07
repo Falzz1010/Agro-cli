@@ -6,6 +6,16 @@
       "sourceType": "github",
       "computedHash": "5aec8481de78884af32ee3ac1efda3c0d355b2ca7c46717dc6ce5f5f1d476b88"
     },
+    "domain-cli": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "557d21b48b4db0065febb7d3db526da8d5f4fe4495da9575c26cb9279f3769cd"
+    },
+    "domain-embedded": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "326fa17b7101c4b6fc8980a164eaf90f8b556286c01931320f9c0a3f443a5024"
+    },
     "domain-iot": {
       "source": "zhanghandong/rust-skills",
       "sourceType": "github",
@@ -16,10 +26,25 @@
       "sourceType": "github",
       "computedHash": "d149408567c4daeb43fcf71fd516060f6fb7dfb831c49142a17ffe6c1d1d3531"
     },
+    "m06-error-handling": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "83ea4e20be18f063983b98fe764f4110f35b5101033ddbc933fc298e9d4b8f36"
+    },
+    "m07-concurrency": {
+      "source": "zhanghandong/rust-skills",
+      "sourceType": "github",
+      "computedHash": "b8d9a2048345a6d91def369fbc36340b7c47c3cefae974d5aab80aa3c1a0e46c"
+    },
     "m10-performance": {
       "source": "zhanghandong/rust-skills",
       "sourceType": "github",
       "computedHash": "6945acaf86bd024e6cade6b71d23026e4969909592eb12ea03e75ed6d3b3a25e"
+    },
+    "ralph-tui-create-beads-rust": {
+      "source": "subsy/ralph-tui",
+      "sourceType": "github",
+      "computedHash": "6975b63df8255333718ab719019e454db9d6d17e52fe02079c6ae0414a81b67c"
     },
     "rust-async-patterns": {
       "source": "wshobson/agents",

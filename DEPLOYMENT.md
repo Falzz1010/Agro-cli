@@ -1,19 +1,19 @@
-# 🚀 AgroCLI Edge Deployment Guide (v1.3.0)
+# 🚀 Panduan Deployment AgroCLI Edge (v1.3.0)
 
-## 📦 Overview
-AgroCLI Edge is optimized for resource-constrained environments. Deployment typically involves building the Rust binary and running it as a background service.
+## 📦 Ikhtisar
+AgroCLI Edge dioptimalkan untuk lingkungan dengan keterbatasan sumber daya. Deployment biasanya melibatkan pembuatan (building) biner Rust dan menjalankannya sebagai layanan latar belakang.
 
 ---
 
-## 💻 Linux / Raspberry Pi (Recommended)
+## 💻 Linux / Raspberry Pi (Direkomendasikan)
 
-### 1. Build Binary
+### 1. Build Biner
 ```bash
 cargo build --release
 ```
 
-### 2. Systemd Setup (Continuous 24/7 Running)
-Create a service file to ensure AgroCLI Edge restarts automatically.
+### 2. Pengaturan Systemd (Berjalan Terus 24/7)
+Buat file layanan untuk memastikan AgroCLI Edge dimulai ulang secara otomatis.
 
 `sudo nano /etc/systemd/system/agro-edge.service`
 
@@ -24,10 +24,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=youruser
-WorkingDirectory=/path/to/AgroCLI
-EnvironmentFile=/path/to/AgroCLI/.env
-ExecStart=/path/to/AgroCLI/target/release/AgroCLI serve
+User=penggunaanda
+WorkingDirectory=/jalur/ke/AgroCLI
+EnvironmentFile=/jalur/ke/AgroCLI/.env
+ExecStart=/jalur/ke/AgroCLI/target/release/AgroCLI serve
 Restart=always
 RestartSec=5
 
@@ -35,7 +35,7 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-### 3. Enable & Start
+### 3. Aktifkan & Mulai
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable agro-edge
@@ -44,7 +44,7 @@ sudo systemctl start agro-edge
 
 ---
 
-## 🐳 Docker Deployment
+## 🐳 Deployment Docker
 
 ### Dockerfile
 ```dockerfile
@@ -60,7 +60,7 @@ COPY --from=builder /app/plants.yaml .
 CMD ["./AgroCLI", "serve"]
 ```
 
-### Run Command
+### Jalankan Perintah
 ```bash
 docker build -t agro-edge .
 docker run -d --name garden-hub -p 8001:8001 -v $(pwd)/data:/app/data agro-edge
@@ -68,10 +68,10 @@ docker run -d --name garden-hub -p 8001:8001 -v $(pwd)/data:/app/data agro-edge
 
 ---
 
-## 🔐 Security Checklist
-- **Reverse Proxy**: Use Nginx or Caddy to handle HTTPS/SSL.
-- **Port Forwarding**: Only expose port 8001 if Basic Auth is enabled in `.env`.
-- **Database Backup**: Regularly back up `data/garden.db`.
+## 🔐 Daftar Periksa Keamanan
+- **Reverse Proxy**: Gunakan Nginx atau Caddy untuk menangani HTTPS/SSL.
+- **Port Forwarding**: Hanya buka port 8001 jika Basic Auth diaktifkan di `.env`.
+- **Database Backup**: Lakukan pencadangan (backup) rutin untuk `data/garden.db`.
 
 ---
-**AgroCLI Edge - Built for Reliability.**
+**AgroCLI Edge - Dibuat untuk Keandalan.**

@@ -26,6 +26,7 @@ dependencies = [
  "teloxide",
  "thiserror",
  "tokio",
+ "tokio-stream",
  "tokio-util",
  "tower-http 0.5.2",
  "tracing",
@@ -599,6 +600,7 @@ checksum = "f476fe445d41c9e991fd07515a6f463074b782242ccf4a5b7b1d1012e70824df"
 dependencies = [
  "bitflags 2.11.0",
  "crossterm_winapi",
+ "futures-core",
  "libc",
  "mio 0.8.11",
  "parking_lot",

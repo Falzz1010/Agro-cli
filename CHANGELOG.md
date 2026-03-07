@@ -1,258 +1,258 @@
-# Changelog
+# Catatan Perubahan (Changelog)
 
-All notable changes to AgroCLI project.
+Semua perubahan penting pada proyek AgroCLI.
 
-## [1.3.0] - 2026-03-05 (LATEST)
+## [1.3.0] - 2026-03-05 (TERBARU)
 
-### 📊 Web Dashboard & Mobile Excellence
+### 📊 Dashboard Web & Keunggulan Seluler
 
-#### Added
-- **Full Mobile Responsiveness**
-  - Premium glassmorphic design that adapts to all screen sizes.
-  - Stackable headers and controls for small touch screens.
-  - Dynamic typography scaling.
-  - Responsive charts with optimized axis labels for mobile.
-- **Enhanced Data Management**
-  - CSV Export feature for historical sensor data.
-  - 7-day historical trend viewing.
-  - Manual watering and threshold setting from web UI.
-- **Architecture Migration**
-  - Complete migration from Python/FastAPI to high-performance Rust/Axum.
-  - Direct async broadcasting via internal channels.
-  - Integrated AI Agent with tool-calling support.
+#### Ditambahkan
+- **Responsivitas Seluler Penuh**
+  - Desain glassmorphic premium yang menyesuaikan dengan semua ukuran layar.
+  - Header dan kontrol yang dapat ditumpuk untuk layar sentuh kecil.
+  - Penskalaan tipografi dinamis.
+  - Grafik responsif dengan label sumbu yang dioptimalkan untuk seluler.
+- **Manajemen Data yang Ditingkatkan**
+  - Fitur Ekspor CSV untuk data sensor historis.
+  - Tampilan tren riwayat selama 7 hari.
+  - Penyiraman manual dan pengaturan ambang batas dari UI web.
+- **Migrasi Arsitektur**
+  - Migrasi penuh dari Python/FastAPI ke Rust/Axum performa tinggi.
+  - Penyiaran asinkron langsung melalui saluran internal.
+  - Integrasi AI Agent dengan dukungan tool-calling.
 
-#### Changed
-- Migrated core engine to Rust for significantly better performance.
-- Replaced HTTP-based internal communication with direct memory-based async channels.
-- Updated TUI with premium RGB colors and improved layout.
+#### Diubah
+- Migrasi mesin inti ke Rust untuk performa yang jauh lebih baik.
+- Mengganti komunikasi internal berbasis HTTP dengan saluran asinkron berbasis memori langsung.
+- Memperbarui TUI dengan warna RGB premium dan tata letak yang ditingkatkan.
 
-#### Security
-- Basic Authentication for API endpoints and history access.
-- Secure environment variable management via `.env`.
+#### Keamanan
+- Autentikasi Dasar (Basic Authentication) untuk endpoint API dan akses riwayat.
+- Manajemen variabel lingkungan yang aman melalui `.env`.
 
 ---
 
 ## [1.2.0] - 2026-03-04
 
-### 🎨 TUI Enhancement & UX Improvements
+### 🎨 Peningkatan TUI & Perbaikan UX
 
-#### Added
-- **Enhanced TUI Screens**
-  - Consistent styling across all screens (Live Tasks, Garden Stats, Live Sensor)
-  - Proper margins and spacing for better readability
-  - Improved header sections with icons and timestamps
-  - Better visual hierarchy with separators
-  - Enhanced footer instructions
+#### Ditambahkan
+- **Layar TUI yang Ditingkatkan**
+  - Gaya yang konsisten di semua layar (Live Tasks, Garden Stats, Live Sensor).
+  - Margin dan jarak yang tepat untuk keterbacaan yang lebih baik.
+  - Bagian header yang ditingkatkan dengan ikon dan stempel waktu.
+  - Hierarki visual yang lebih baik dengan pemisah.
+  - Instruksi footer yang ditingkatkan.
 
-- **Web Dashboard Information Screen**
-  - New information screen when selecting Web Dashboard from menu
-  - Shows clear instructions on how to start web server
-  - Displays URL and port information
-  - Lists all available features
-  - No need to exit TUI - just shows instructions
+- **Layar Informasi Dashboard Web**
+  - Layar informasi baru saat memilih Dashboard Web dari menu.
+  - Menunjukkan instruksi jelas tentang cara memulai server web.
+  - Menampilkan informasi URL dan port.
+  - Mencantumkan semua fitur yang tersedia.
+  - Tidak perlu keluar dari TUI - hanya menampilkan instruksi.
 
-- **Clear Server Output Messages**
-  - Server output now distinguishes between binding address and browser URL
-  - Automatically converts 0.0.0.0 to 127.0.0.1 in display
-  - Added helpful note when binding to 0.0.0.0
-  - Prevents ERR_ADDRESS_INVALID confusion
+- **Pesan Output Server yang Jelas**
+  - Output server sekarang membedakan antara alamat binding dan URL browser.
+  - Secara otomatis mengonversi 0.0.0.0 menjadi 127.0.0.1 dalam tampilan.
+  - Menambahkan catatan bantuan saat melakukan binding ke 0.0.0.0.
+  - Mencegah kebingungan ERR_ADDRESS_INVALID.
 
-#### Changed
-- **Live Tasks Screen**
-  - Added proper header with weather info
-  - Improved task list styling
-  - Better empty state message
-  - Consistent border styling
+#### Diubah
+- **Layar Tugas Langsung (Live Tasks)**
+  - Menambahkan header yang tepat dengan info cuaca.
+  - Gaya daftar tugas yang ditingkatkan.
+  - Pesan status kosong yang lebih baik.
+  - Gaya border yang konsisten.
 
-- **Garden Stats Screen**
-  - Enhanced statistics display
-  - Added database status indicator
-  - Better layout with proper spacing
-  - Improved visual presentation
+- **Layar Statistik Kebun (Garden Stats)**
+  - Tampilan statistik yang ditingkatkan.
+  - Menambahkan indikator status database.
+  - Tata letak yang lebih baik dengan jarak yang tepat.
+  - Presentasi visual yang ditingkatkan.
 
-- **Live Sensor Screen**
-  - Better sensor data visualization
-  - Enhanced progress bars
-  - Improved status indicators
-  - Clearer temperature and humidity display
+- **Layar Sensor Langsung (Live Sensor)**
+  - Visualisasi data sensor yang lebih baik.
+  - Progress bar yang ditingkatkan.
+  - Indikator status yang ditingkatkan.
+  - Tampilan suhu dan kelembaban yang lebih jelas.
 
-- **Web Dashboard Flow**
-  - Selecting "Start Web Dashboard" now shows instruction screen
-  - TUI remains active (doesn't exit)
-  - User manually starts web server in separate terminal
-  - Clear step-by-step instructions provided
-  - Both TUI and web server can run simultaneously
+- **Alur Dashboard Web**
+  - Memilih "Mulai Dashboard Web" sekarang menampilkan layar instruksi.
+  - TUI tetap aktif (tidak keluar).
+  - Pengguna memulai server web secara manual di terminal terpisah.
+  - Instruksi langkah demi langkah yang jelas disediakan.
+  - TUI dan server web dapat berjalan secara bersamaan.
 
-- **Server Startup Messages**
-  - Clear distinction between server binding and browser access
-  - Shows both technical (0.0.0.0:8001) and user-friendly (127.0.0.1:8001) addresses
-  - Added helpful notes for first-time users
+- **Pesan Awal Server**
+  - Perbedaan jelas antara binding server dan akses browser.
+  - Menunjukkan alamat teknis (0.0.0.0:8001) dan ramah pengguna (127.0.0.1:8001).
+  - Menambahkan catatan bantuan untuk pengguna baru.
 
-#### Fixed
-- Removed unused `ExitSignal::WebDashboard` variant
-- Cleaned up dead code warnings
-- Simplified TUI loop logic
-- Fixed confusing 0.0.0.0 URL in server output
-- Prevented ERR_ADDRESS_INVALID browser errors
+#### Diperbaiki
+- Menghapus varian `ExitSignal::WebDashboard` yang tidak digunakan.
+- Membersihkan peringatan kode mati (dead code).
+- Menyederhanakan logika loop TUI.
+- Memperbaiki URL 0.0.0.0 yang membingungkan pada output server.
+- Mencegah kesalahan browser ERR_ADDRESS_INVALID.
 
-#### Technical Details
-- Refactored all screen rendering functions
-- Removed complex background task management
-- Improved code maintainability
-- Better separation of concerns
-- Cleaner exit signal handling
-- Smart URL conversion for user display
+#### Detail Teknis
+- Refaktorisasi semua fungsi rendering layar.
+- Menghapus manajemen tugas latar belakang yang kompleks.
+- Meningkatkan pemeliharaan kode.
+- Pemisahan tanggung jawab (separation of concerns) yang lebih baik.
+- Penanganan sinyal keluar yang lebih bersih.
+- Konversi URL cerdas untuk tampilan pengguna.
 
-#### User Experience
-- All menu selections now have consistent, polished UI
-- Web Dashboard accessible with clear instructions
-- Better visual feedback for all operations
-- Improved navigation flow
-- No unexpected TUI exits
-- Clear, actionable server URLs
-- No confusion about 0.0.0.0 vs 127.0.0.1
+#### Pengalaman Pengguna
+- Semua pilihan menu sekarang memiliki UI yang konsisten dan apik.
+- Dashboard Web dapat diakses dengan instruksi yang jelas.
+- Umpan balik visual yang lebih baik untuk semua operasi.
+- Alur navigasi yang ditingkatkan.
+- Tidak ada penutupan TUI yang tidak terduga.
+- URL server yang jelas dan dapat ditindaklanjuti.
+- Tidak ada kebingungan antara 0.0.0.0 vs 127.0.0.1.
 
-#### Documentation
-- Added WEB_ACCESS_GUIDE.md - Complete guide on accessing dashboard
-- Added WEB_DASHBOARD_TROUBLESHOOTING.md - Troubleshooting for charts
-- Added SERVER_OUTPUT_FIX.md - Technical details on URL display fix
-- Updated TUI_IMPROVEMENTS.md - Complete TUI enhancement documentation
+#### Dokumentasi
+- Menambahkan `WEB_ACCESS_GUIDE.md` - Panduan lengkap akses dashboard.
+- Menambahkan `WEB_DASHBOARD_TROUBLESHOOTING.md` - Pemecahan masalah untuk grafik.
+- Menambahkan `SERVER_OUTPUT_FIX.md` - Detail teknis perbaikan tampilan URL.
+- Memperbarui `TUI_IMPROVEMENTS.md` - Dokumentasi lengkap peningkatan TUI.
 
 ---
 
 ## [1.1.0] - 2026-02-28
 
-### 🤖 AI Agent Mode & System Fixes
+### 🤖 Mode AI Agent & Perbaikan Sistem
 
-#### Added
-- **AI Agent Mode**
-  - Natural language control in Indonesian
-  - Rule-based command parsing (no API key needed)
-  - Interactive chat interface
-  - Commands: check status, water plants, add plants, harvest, recommendations
-  - Context-aware responses
-  - Help system with examples
+#### Ditambahkan
+- **Mode AI Agent**
+  - Kontrol bahasa alami dalam Bahasa Indonesia.
+  - Parsing perintah berbasis aturan (tidak perlu kunci API).
+  - Antarmuka chat interaktif.
+  - Perintah: cek status, siram tanaman, tambah tanaman, panen, rekomendasi.
+  - Respons yang sadar konteks.
+  - Sistem bantuan dengan contoh.
 
-#### Fixed
-- **Real-Time Broadcast System**
-  - Optimized HTTP POST timeout (2 seconds)
-  - Added broadcast status summary in daemon
-  - Fixed task checking bug (now runs for all plants)
-  - Removed verbose broadcast messages
-  - Fire-and-forget broadcast to prevent blocking
+#### Diperbaiki
+- **Sistem Broadcast Waktu Nyata**
+  - Optimalisasi timeout HTTP POST (2 detik).
+  - Menambahkan ringkasan status broadcast di daemon.
+  - Memperbaiki bug pengecekan tugas (sekarang berjalan untuk semua tanaman).
+  - Menghapus pesan broadcast yang terlalu detail.
+  - Broadcast model "lepas-dan-lupakan" (fire-and-forget) untuk mencegah hambatan.
 
-- **Sensor Reading Optimization**
-  - Sensors now read once per cycle (not twice)
-  - Cached sensor data for task checking
-  - Reduced hardware load by 50%
+- **Optimalisasi Pembacaan Sensor**
+  - Sensor sekarang membaca sekali per siklus (bukan dua kali).
+  - Data sensor disimpan sementara (cache) untuk pengecekan tugas.
+  - Mengurangi beban perangkat keras sebesar 50%.
 
-- **Import Errors**
-  - Fixed `core/ai_executor.py` import error
-  - Cleaned up Python cache issues
-  - Proper module initialization
+- **Kesalahan Impor**
+  - Memperbaiki kesalahan impor `core/ai_executor.py`.
+  - Membersihkan masalah cache Python.
+  - Inisialisasi modul yang tepat.
 
-- **Graceful Shutdown**
-  - Fixed "Event loop is closed" errors
-  - Proper WebSocket cleanup on Ctrl+C
-  - Clean exit messages
+- **Penghentian Aman (Graceful Shutdown)**
+  - Memperbaiki kesalahan "Event loop is closed".
+  - Pembersihan WebSocket yang tepat pada Ctrl+C.
+  - Pesan keluar yang bersih.
 
-#### Changed
-- Daemon now shows clear broadcast status: `✓ Real-time broadcast: 4/4 plants`
-- Improved error messages with actionable suggestions
-- Better terminal output formatting
+#### Diubah
+- Daemon sekarang menunjukkan status broadcast yang jelas: `✓ Real-time broadcast: 4/4 tanaman`.
+- Pesan kesalahan yang ditingkatkan dengan saran tindakan.
+- Pemformatan output terminal yang lebih baik.
 
-#### Documentation
-- Added `FIXED_SYSTEM_GUIDE.md` - Complete troubleshooting guide
-- Updated README.md with AI Agent Mode instructions
-- Added AI command examples
+#### Dokumentasi
+- Menambahkan `FIXED_SYSTEM_GUIDE.md` - Panduan lengkap pemecahan masalah.
+- Memperbarui `README.md` dengan instruksi Mode AI Agent.
+- Menambahkan contoh perintah AI.
 
 ---
 
 ## [1.0.0] - 2026-02-28
 
-### 🎉 Real-Time System Implementation
+### 🎉 Implementasi Sistem Waktu Nyata
 
-#### Added
-- **WebSocket Integration**
-  - Real-time bidirectional communication
-  - Auto-reconnect on disconnect
-  - Multi-client synchronization
-  - Connection status indicator
+#### Ditambahkan
+- **Integrasi WebSocket**
+  - Komunikasi dua arah waktu nyata.
+  - Hubung ulang otomatis jika terputus.
+  - Sinkronisasi multi-klien.
+  - Indikator status koneksi.
 
-- **Enhanced Web Dashboard**
-  - Live sensor data streaming (5s interval)
-  - Auto-updating Chart.js graphs
-  - Toast notifications for events
-  - Pump status indicators
-  - Mobile-responsive design
-  - Pulsing live indicators
+- **Dashboard Web yang Ditingkatkan**
+  - Streaming data sensor langsung (interval 5 detik).
+  - Grafik Chart.js yang diperbarui otomatis.
+  - Notifikasi toast untuk acara.
+  - Indikator status pompa.
+  - Desain responsif seluler.
+  - Indikator siaran langsung yang berdenyut.
 
-- **Enhanced Daemon Mode**
-  - WebSocket broadcasting
-  - Async/await implementation
-  - Real-time event streaming
-  - Graceful fallback to sync mode
+- **Mode Daemon yang Ditingkatkan**
+  - Penyiaran WebSocket.
+  - Implementasi async/await.
+  - Streaming acara waktu nyata.
+  - Fallback aman ke mode sinkron (sync mode).
 
-- **New Core Module**
-  - `core/realtime.py` - WebSocket manager
-  - ConnectionManager class
-  - Event broadcasting methods
+- **Modul Inti Baru**
+  - `core/realtime.py` - Manajer WebSocket.
+  - Kelas ConnectionManager.
+  - Metode penyiaran acara (event broadcasting).
 
-- **Documentation**
-  - README.md - Project overview
-  - QUICKSTART.md - 5-minute setup guide
-  - REALTIME_SETUP.md - Real-time features
-  - ARCHITECTURE.md - System design
-  - TESTING_GUIDE.md - Testing procedures
-  - REALTIME_IMPLEMENTATION_SUMMARY.md - Implementation details
-  - CHANGELOG.md - This file
+- **Dokumentasi**
+  - `README.md` - Ikhtisar proyek.
+  - `QUICKSTART.md` - Panduan pengaturan 5 menit.
+  - `REALTIME_SETUP.md` - Fitur waktu nyata.
+  - `ARCHITECTURE.md` - Desain sistem.
+  - `TESTING_GUIDE.md` - Prosedur pengujian.
+  - `REALTIME_IMPLEMENTATION_SUMMARY.md` - Detail implementasi.
+  - `CHANGELOG.md` - File ini.
 
-#### Changed
-- `web/server.py` - Complete rewrite with WebSocket support
-- `main.py` - Enhanced daemon_mode() with broadcasting
-- `requirements.txt` - Added FastAPI, Uvicorn, WebSockets
+#### Diubah
+- `web/server.py` - Penulisan ulang lengkap dengan dukungan WebSocket.
+- `main.py` - Peningkatan `daemon_mode()` dengan penyiaran.
+- `requirements.txt` - Menambahkan FastAPI, Uvicorn, WebSockets.
 
-#### Technical Details
-- ~800 lines of new code
-- ~200 lines modified
-- 7 new documentation files
-- Zero syntax errors
-- Production-ready architecture
+#### Detail Teknis
+- ~800 baris kode baru.
+- ~200 baris kode diubah.
+- 7 file dokumentasi baru.
+- Nol kesalahan sintaks.
+- Arsitektur siap produksi.
 
-### 🔧 Configuration
-- Sensor update interval: 5 seconds
-- Database write interval: 60 seconds
-- Chart rolling window: 30 points
-- WebSocket reconnect delay: 3 seconds
+### 🔧 Konfigurasi
+- Interval pembaruan sensor: 5 detik.
+- Interval penulisan database: 60 detik.
+- Jendela bergulir grafik: 30 titik data.
+- Penundaan hubung ulang WebSocket: 3 detik.
 
-### 📊 Performance
-- WebSocket latency: < 100ms
-- Memory usage: ~50MB
-- CPU usage: < 5% idle, < 15% active
-- Unlimited concurrent clients
-
----
-
-## [0.9.0] - Previous Version
-
-### Features
-- CLI interface with Rich formatting
-- Interactive menu with Questionary
-- SQLite database for plant tracking
-- Weather API integration
-- Mock sensor readings
-- Mock pump control
-- Daemon mode (sync only)
-- Web dashboard (static)
-- CSV export functionality
+### 📊 Performa
+- Latensi WebSocket: < 100ms.
+- Penggunaan memori: ~50MB.
+- Penggunaan CPU: < 5% idle, < 15% aktif.
+- Klien bersamaan tidak terbatas.
 
 ---
 
-**Legend:**
-- 🎉 Major feature
-- ✨ New feature
-- 🔧 Configuration
-- 🐛 Bug fix
-- 📚 Documentation
-- 🔒 Security
-- ⚡ Performance
+## [0.9.0] - Versi Sebelumnya
+
+### Fitur
+- Antarmuka CLI dengan pemformatan Rich.
+- Menu interaktif dengan Questionary.
+- Database SQLite untuk pelacakan tanaman.
+- Integrasi API Cuaca.
+- Pembacaan sensor tiruan (mock).
+- Kontrol pompa tiruan (mock).
+- Mode Daemon (hanya sinkron).
+- Dashboard web (statis).
+- Fungsionalitas ekspor CSV.
+
+---
+
+**Legenda:**
+- 🎉 Fitur Utama
+- ✨ Fitur Baru
+- 🔧 Konfigurasi
+- 🐛 Perbaikan Bug
+- 📚 Dokumentasi
+- 🔒 Keamanan
+- ⚡ Performa

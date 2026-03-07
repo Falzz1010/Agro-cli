@@ -1,264 +1,260 @@
-# 🤝 Contributing to AgroCLI
+# 🤝 Berkontribusi di AgroCLI
 
-Thank you for your interest in contributing to AgroCLI! This document provides guidelines for contributing to the project.
+Terima kasih atas minat Anda untuk berkontribusi di AgroCLI! Dokumen ini memberikan panduan untuk berkontribusi pada proyek ini.
 
-## 🌟 Ways to Contribute
+## 🌟 Cara Berkontribusi
 
-- 🐛 Report bugs
-- 💡 Suggest new features
-- 📝 Improve documentation
-- 🔧 Submit bug fixes
-- ✨ Add new features
-- 🧪 Write tests
-- 🌍 Translate to other languages
+- 🐛 Melaporkan bug
+- 💡 Menyarankan fitur baru
+- 📝 Memperbaiki dokumentasi
+- 🔧 Mengirimkan perbaikan bug
+- ✨ Menambahkan fitur baru
+- 🧪 Menulis pengujian (tests)
+- 🌍 Menerjemahkan ke bahasa lain
 
-## 🚀 Getting Started
+## 🚀 Memulai
 
-### 1. Fork the Repository
+### 1. Fork Repositori
 ```bash
-# Fork on GitHub, then clone your fork
+# Fork di GitHub, lalu clone fork Anda
 git clone https://github.com/YOUR_USERNAME/agrocli.git
 cd agrocli
 ```
 
-### 2. Set Up Development Environment
+### 2. Siapkan Lingkungan Pengembangan
 ```bash
-# Create virtual environment
+# Buat lingkungan virtual
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Di Windows: venv\Scripts\activate
 
-# Install dependencies
+# Instal dependensi
 pip install -r requirements.txt
 
-# Install development dependencies
+# Instal dependensi pengembangan
 pip install pytest black flake8 mypy
 ```
 
-### 3. Create a Branch
+### 3. Buat Branch
 ```bash
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/bug-description
+git checkout -b feature/nama-fitur-anda
+# atau
+git checkout -b fix/deskripsi-bug
 ```
 
-## 📋 Development Guidelines
+## 📋 Panduan Pengembangan
 
-### Code Style
+### Gaya Kode
 
-We follow PEP 8 with some modifications:
+Kami mengikuti PEP 8 dengan beberapa modifikasi:
 
 ```python
-# Good
+# Baik
 def water_plant(plant_name: str, duration: int = 3) -> bool:
-    """Water a specific plant for given duration"""
+    """Menyiram tanaman tertentu untuk durasi yang diberikan"""
     pass
 
-# Bad
+# Buruk
 def waterPlant(plantName,duration=3):
     pass
 ```
 
-**Run linters:**
+**Jalankan linter:**
 ```bash
-black .  # Format code
-flake8 .  # Check style
-mypy .  # Type checking
+black .  # Memformat kode
+flake8 .  # Memeriksa gaya
+mypy .  # Pemeriksaan tipe data
 ```
 
-### Commit Messages
+### Pesan Commit
 
-Follow conventional commits:
+Ikuti konvensi pesan commit (Conventional Commits):
 
 ```
-feat: add AI agent mode
-fix: resolve WebSocket timeout issue
-docs: update API documentation
-test: add unit tests for database module
-refactor: optimize sensor reading logic
+feat: tambah mode AI agent
+fix: selesaikan masalah timeout WebSocket
+docs: perbarui dokumentasi API
+test: tambah unit test untuk modul database
+refactor: optimalkan logika pembacaan sensor
 ```
 
-### Testing
+### Pengujian (Testing)
 
-Write tests for new features:
+Tulis pengujian untuk fitur baru:
 
 ```python
 # tests/test_database.py
 def test_add_plant():
-    result = add_plant("tomato", "Test-Plant")
+    result = add_plant("tomato", "Tanaman-Uji")
     assert result == True
 ```
 
-Run tests:
+Jalankan pengujian:
 ```bash
 pytest
-pytest --cov  # With coverage
+pytest --cov  # Dengan cakupan kode (coverage)
 ```
 
-### Documentation
+### Dokumentasi
 
-- Update README.md for user-facing changes
-- Update API_DOCUMENTATION.md for API changes
-- Add docstrings to all functions
-- Update CHANGELOG.md
+- Perbarui `README.md` untuk perubahan yang terlihat oleh pengguna.
+- Perbarui `API_DOCUMENTATION.md` untuk perubahan API.
+- Tambahkan docstrings ke semua fungsi.
+- Perbarui `CHANGELOG.md`.
 
-## 🔄 Pull Request Process
+## 🔄 Proses Pull Request
 
-### 1. Before Submitting
+### 1. Sebelum Mengirimkan
 
-- [ ] Code follows style guidelines
-- [ ] All tests pass
-- [ ] Documentation is updated
-- [ ] Commit messages are clear
-- [ ] No merge conflicts
+- [ ] Kode mengikuti panduan gaya.
+- [ ] Semua pengujian lulus.
+- [ ] Dokumentasi telah diperbarui.
+- [ ] Pesan commit jelas.
+- [ ] Tidak ada konflik merge.
 
-### 2. Submit PR
+### 2. Kirim PR
 
-1. Push to your fork
-2. Create Pull Request on GitHub
-3. Fill in PR template
-4. Link related issues
+1. Push ke fork Anda.
+2. Buat Pull Request di GitHub.
+3. Isi template PR.
+4. Tautkan issue terkait.
 
-### 3. PR Template
+### 3. Template PR
 
 ```markdown
-## Description
-Brief description of changes
+## Deskripsi
+Deskripsi singkat tentang perubahan.
 
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
+## Jenis Perubahan
+- [ ] Perbaikan bug
+- [ ] Fitur baru
+- [ ] Perubahan besar (breaking change)
+- [ ] Pembaruan dokumentasi
 
-## Testing
-How was this tested?
+## Pengujian
+Bagaimana ini diuji?
 
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] No breaking changes (or documented)
+## Daftar Periksa (Checklist)
+- [ ] Kode mengikuti panduan gaya
+- [ ] Pengujian ditambahkan/diperbarui
+- [ ] Dokumentasi diperbarui
+- [ ] Tidak ada perubahan besar (atau telah didokumentasikan)
 ```
 
-## 🐛 Bug Reports
+## 🐛 Laporan Bug
 
-Use GitHub Issues with this template:
+Gunakan GitHub Issues dengan template ini:
 
 ```markdown
-**Describe the bug**
-Clear description of the bug
+**Deskripsi bug**
+Deskripsi yang jelas tentang bug.
 
-**To Reproduce**
-Steps to reproduce:
-1. Run command '...'
-2. Click on '...'
-3. See error
+**Langkah Mereproduksi**
+Langkah-langkah untuk mereproduksi:
+1. Jalankan perintah '...'
+2. Klik pada '...'
+3. Lihat kesalahan (error)
 
-**Expected behavior**
-What should happen
+**Perilaku yang Diharapkan**
+Apa yang seharusnya terjadi.
 
-**Screenshots**
-If applicable
+**Tangkapan Layar (Screenshots)**
+Jika ada.
 
-**Environment:**
-- OS: [e.g. Windows 11]
-- Python version: [e.g. 3.11]
-- AgroCLI version: [e.g. 1.1.0]
+**Lingkungan (Environment):**
+- OS: [misal Windows 11]
+- Versi Python: [misal 3.11]
+- Versi AgroCLI: [misal 1.1.0]
 
-**Additional context**
-Any other information
+**Konteks Tambahan**
+Informasi lainnya.
 ```
 
-## 💡 Feature Requests
+## 💡 Permintaan Fitur
 
-Use GitHub Issues with this template:
+Gunakan GitHub Issues dengan template ini:
 
 ```markdown
-**Is your feature request related to a problem?**
-Description of the problem
+**Apakah permintaan fitur ini terkait dengan suatu masalah?**
+Deskripsi masalah tersebut.
 
-**Describe the solution you'd like**
-Clear description of desired feature
+**Deskripsi solusi yang Anda inginkan**
+Deskripsi yang jelas tentang fitur yang diinginkan.
 
-**Describe alternatives you've considered**
-Other solutions you've thought about
+**Deskripsi alternatif yang telah Anda pertimbangkan**
+Solusi lain yang telah Anda pikirkan.
 
-**Additional context**
-Mockups, examples, etc.
+**Konteks Tambahan**
+Mockup, contoh, dll.
 ```
 
-## 🏗️ Project Structure
+## 🏗️ Struktur Proyek
 
 ```
 agrocli/
-├── core/           # Core business logic
-│   ├── database.py     # Database operations
-│   ├── engine.py       # Task calculation
-│   ├── realtime.py     # WebSocket manager
-│   ├── ai_agent.py     # AI command parsing
-│   └── ai_executor.py  # AI action execution
-├── hardware/       # Hardware abstraction
-│   ├── sensors.py      # Sensor reading
-│   └── pump.py         # Pump control
-├── web/            # Web server
-│   └── server.py       # FastAPI application
-├── tests/          # Unit tests (to be added)
-├── docs/           # Additional documentation
-└── main.py         # CLI entry point
+├── core/           # Logika bisnis inti
+│   ├── database.py     # Operasi database
+│   ├── engine.py       # Kalkulasi tugas
+│   ├── realtime.py     # Manajer WebSocket
+│   ├── ai_agent.py     # Parsing perintah AI
+│   └── ai_executor.py  # Eksekusi tindakan AI
+├── hardware/       # Abstraksi perangkat keras
+│   ├── sensors.py      # Pembacaan sensor
+│   └── pump.py         # Kontrol pompa
+├── web/            # Server web
+│   └── server.py       # Aplikasi FastAPI
+├── tests/          # Unit tests (akan ditambahkan)
+├── docs/           # Dokumentasi tambahan
+└── main.py         # Titik masuk CLI
 ```
 
-## 🎯 Priority Areas
+## 🎯 Area Prioritas
 
-We especially welcome contributions in:
+Kami sangat menerima kontribusi dalam:
 
-1. **Testing** - Unit tests, integration tests
-2. **Hardware Integration** - Real sensor support
-3. **AI Features** - LLM integration, better NLP
-4. **Mobile App** - React Native or Flutter
-5. **Internationalization** - More languages
-6. **Performance** - Optimization, caching
-7. **Security** - Authentication, authorization
+1. **Pengujian (Testing)** - Unit tests, integration tests.
+2. **Integrasi Perangkat Keras** - Dukungan sensor nyata.
+3. **Fitur AI** - Integrasi LLM, NLP yang lebih baik.
+4. **Aplikasi Seluler** - React Native atau Flutter.
+5. **Internasionalisasi (i18n)** - Lebih banyak bahasa.
+6. **Performa** - Optimalisasi, caching.
+7. **Keamanan** - Autentikasi, otorisasi.
 
-## 📞 Communication
+## 📞 Komunikasi
 
-- **GitHub Issues** - Bug reports, feature requests
-- **GitHub Discussions** - Questions, ideas
-- **Pull Requests** - Code contributions
+- **GitHub Issues** - Laporan bug, permintaan fitur.
+- **GitHub Discussions** - Pertanyaan, ide.
+- **Pull Requests** - Kontribusi kode.
 
-## 📜 Code of Conduct
+## 📜 Kode Etik
 
-### Our Pledge
+### Janji Kami
+Kami berjanji untuk menjadikan partisipasi dalam proyek kami sebagai pengalaman yang bebas gangguan bagi semua orang.
 
-We pledge to make participation in our project a harassment-free experience for everyone.
+### Standar Kami
+**Perilaku positif:**
+- Menggunakan bahasa yang menyambut baik.
+- Menghormati sudut pandang yang berbeda.
+- Menerima kritik membangun dengan lapang dada.
+- Fokus pada apa yang terbaik bagi komunitas.
 
-### Our Standards
+**Perilaku yang tidak dapat diterima:**
+- Trolling, komentar menghina/merendahkan.
+- Gangguan publik atau pribadi (harassment).
+- Mempublikasikan informasi pribadi orang lain.
+- Perilaku tidak etis atau tidak profesional lainnya.
 
-**Positive behavior:**
-- Using welcoming language
-- Being respectful of differing viewpoints
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
+## 🙏 Pengakuan
+Kontributor akan:
+- Dicantumkan dalam `CONTRIBUTORS.md`.
+- Disebutkan dalam catatan rilis (release notes).
+- Diberikan kredit dalam dokumentasi.
 
-**Unacceptable behavior:**
-- Trolling, insulting/derogatory comments
-- Public or private harassment
-- Publishing others' private information
-- Other unethical or unprofessional conduct
-
-## 🙏 Recognition
-
-Contributors will be:
-- Listed in CONTRIBUTORS.md
-- Mentioned in release notes
-- Given credit in documentation
-
-## ❓ Questions?
-
-Feel free to:
-- Open a GitHub Discussion
-- Comment on related issues
-- Reach out to maintainers
+## ❓ Pertanyaan?
+Jangan ragu untuk:
+- Membuka diskusi di GitHub Discussion.
+- Berkomentar pada issue terkait.
+- Menghubungi para pengelola (maintainers).
 
 ---
 
-**Thank you for contributing to AgroCLI! 🌱**
+**Terima kasih telah berkontribusi di AgroCLI! 🌱**

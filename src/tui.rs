@@ -17,6 +17,7 @@ use ratatui::{
     },
 };
 use tokio::time::Duration;
+use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
 use crate::core::{calculate_today_tasks, load_rules, weather, GardenTask};
@@ -277,16 +278,20 @@ impl App {
                         let key_clone = key.clone();
                         let city_clone = city.clone();
                         tokio::spawn(async move {
-                            let _ = tokio::time::timeout(
-                                Duration::from_millis(300),
+                            match tokio::time::timeout(
+                                Duration::from_millis(1000), // Increased timeout slightly
                                 weather(&city_clone, &key_clone)
-                            ).await;
+                            ).await {
+                                Ok(Ok(_)) => {},
+                                Ok(Err(e)) => tracing::warn!("Background weather fetch failed: {}", e),
+                                Err(_) => tracing::warn!("Background weather fetch timed out"),
+                            }
                         });
                         self.weather_last_fetch = Instant::now();
                     }
                     
                     let wc = self.weather.as_ref().map(|(c, _)| c.as_str());
-                    self.tasks = calculate_today_tasks(&plants, wc, None);
+                    self.tasks = calculate_today_tasks(&plants, wc, None).await;
                     self.needs_redraw = true;
                 }
             }
@@ -597,7 +602,7 @@ impl App {
                 self.last_tick = Instant::now().checked_sub(Duration::from_secs(100)).unwrap_or_else(Instant::now);
             }
             2 => { // Add Plant
-                match load_rules() {
+                match load_rules().await {
                     Ok(r) => {
                         let types: Vec<String> = r.keys().cloned().collect();
                         if types.is_empty() {
@@ -689,7 +694,7 @@ impl App {
             }
             Pending::Harvest => {
                 match self.state.db.harvest_plant(&selected).await {
-                    Ok(_) => self.go_msg("🎉 Harvested!", &format!("{selected} has been archived.")),
+                    Ok(()) => self.go_msg("🎉 Harvested!", &format!("{selected} has been archived.")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
                 }
             }
@@ -801,7 +806,7 @@ impl App {
                 let wm: i32 = self.field_val(1).parse().unwrap_or(200);
                 let pn = name.clone();
                 match self.state.db.update_plant_settings(&pn, mm, wm).await {
-                    Ok(_) => self.go_msg("⚙️  Updated!", &format!("{pn}: Min Moisture = {mm}%, Water = {wm}ml")),
+                    Ok(()) => self.go_msg("⚙️  Updated!", &format!("{pn}: Min Moisture = {mm}%, Water = {wm}ml")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
                 }
             }
@@ -848,8 +853,7 @@ impl App {
             Pending::DeleteConfirm { name } => {
                 let n = name.clone();
                 match self.state.db.delete_plant(&n).await {
-                    Ok(true) => self.go_msg("🗑️  Deleted!", &format!("{n} and all sensor logs deleted.")),
-                    Ok(false) => self.go_msg("❌ Error", &format!("Plant '{n}' not found.")),
+                    Ok(()) => self.go_msg("🗑️  Deleted!", &format!("{n} and all sensor logs deleted.")),
                     Err(e) => self.go_msg("❌ Error", &format!("Failed: {e}")),
                 }
             }
@@ -2090,6 +2094,11 @@ fn make_footer(pairs: &[&str]) -> Paragraph<'static> {
 
 // ── Public entry point ─────────────────────────────────────────────
 
+/// Memulai antarmuka pengguna terminal (TUI).
+///
+/// # Errors
+///
+/// Mengembalikan kesalahan jika terminal tidak dapat diinisialisasi atau loop event gagal.
 pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToken) -> Result<ExitSignal> {
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
@@ -2098,6 +2107,9 @@ pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToke
     let mut terminal = Terminal::new(backend)?;
 
     let mut app = App::new(state, cancel_token);
+    
+    let mut event_stream = crossterm::event::EventStream::new();
+    let mut tick_interval = tokio::time::interval(Duration::from_millis(50));
 
     loop {
         if app.needs_redraw {
@@ -2113,12 +2125,31 @@ pub async fn run_tui(state: crate::web::AppState, cancel_token: CancellationToke
             return Ok(signal);
         }
 
-        if event::poll(Duration::from_millis(50))?
-            && let Event::Key(key) = event::read()? {
-                app.handle_key(key).await;
+        tokio::select! {
+            _ = tick_interval.tick() => {
+                app.tick().await;
+            }
+            maybe_event = event_stream.next() => {
+                match maybe_event {
+                    Some(Ok(Event::Key(key))) => {
+                        app.handle_key(key).await;
+                        app.tick().await;
+                    }
+                    Some(Ok(_)) => {
+                        // Ignore other events for now, but tick anyway to run background tasks
+                        app.tick().await;
+                    }
+                    Some(Err(e)) => return Err(e.into()),
+                    None => break,
+                }
+            }
         }
-
-        app.tick().await;
     }
+    
+    // In case the loop breaks, ensure terminal is restored
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+    terminal.show_cursor()?;
+    Ok(ExitSignal::Quit)
 }
 

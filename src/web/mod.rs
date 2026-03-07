@@ -17,7 +17,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
-/// Data structure for broadcasting sensor readings.
+/// Struktur data untuk menyiarkan pembacaan sensor.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SensorData {
     pub plant_name: String,
@@ -29,7 +29,7 @@ pub struct SensorData {
     pub water_ml: Option<i32>,
 }
 
-/// Data structure for AI interactions.
+/// Struktur data untuk interaksi AI.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AiLog {
     pub timestamp: String,
@@ -37,7 +37,7 @@ pub struct AiLog {
     pub response: String,
 }
 
-/// A single historical sensor data point.
+/// Satu titik data riwayat sensor.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SensorHistoryPoint {
     pub timestamp: String,
@@ -46,7 +46,7 @@ pub struct SensorHistoryPoint {
     pub humidity: f32,
 }
 
-/// Unified message type for WebSocket updates.
+/// Jenis pesan terpadu untuk pembaruan WebSocket.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type", content = "data")]
 pub enum DashboardMessage {
@@ -54,16 +54,16 @@ pub enum DashboardMessage {
     AiLog(AiLog),
 }
 
-/// Shared state for the web server.
+/// Status bersama untuk server web.
 #[derive(Clone)]
 pub struct AppState {
-    /// Broadcast channel sender for live sensor data and AI logs.
+    /// Sender saluran broadcast untuk data sensor langsung dan log AI.
     pub tx: broadcast::Sender<DashboardMessage>,
-    /// Database handle for persistence.
+    /// Handle database untuk persistensi.
     pub db: std::sync::Arc<crate::db::Database>,
 }
 
-/// Command structure for remote actions.
+/// Struktur perintah untuk tindakan jarak jauh.
 #[derive(Deserialize)]
 pub struct SettingsCommand {
     pub plant_name: String,
@@ -71,19 +71,19 @@ pub struct SettingsCommand {
     pub water_ml: i32,
 }
 
-/// Command structure for remote watering.
+/// Struktur perintah untuk penyiraman jarak jauh.
 #[derive(Deserialize)]
 pub struct WaterCommand {
     pub plant_name: String,
 }
 
-/// Command structure for deleting a plant.
+/// Struktur perintah untuk menghapus tanaman.
 #[derive(Deserialize)]
 pub struct DeleteCommand {
     pub plant_name: String,
 }
 
-/// Unified error type for the web module.
+/// Jenis kesalahan terpadu untuk modul web.
 pub enum AppError {
     NotFound(String),
     Database(String),
@@ -106,19 +106,25 @@ impl IntoResponse for AppError {
     }
 }
 
-// Convert any error to AppError::Internal
-impl<E> From<E> for AppError
-where
-    E: std::error::Error,
-{
-    fn from(err: E) -> Self {
-        Self::Internal(err.to_string())
+// Specific error conversions for AppError
+impl From<crate::db::DbError> for AppError {
+    fn from(err: crate::db::DbError) -> Self {
+        match err {
+            crate::db::DbError::PlantNotFound(msg) => Self::NotFound(msg),
+            crate::db::DbError::Sqlx(e) => Self::Database(e.to_string()),
+        }
+    }
+}
+
+impl From<serde_json::Error> for AppError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::Internal(format!("JSON error: {err}"))
     }
 }
 
 type WebResult<T> = Result<T, AppError>;
 
-/// Endpoint for the Daemon to POST live sensor updates.
+/// Endpoint bagi Daemon untuk POST pembaruan sensor langsung.
 async fn broadcast_sensor(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<SensorData>,
@@ -127,7 +133,7 @@ async fn broadcast_sensor(
     Json(serde_json::json!({ "status": "broadcasted", "received": payload.plant_name }))
 }
 
-/// Endpoint for the AI Agent to POST live interaction logs.
+/// Endpoint bagi AI Agent untuk POST log interaksi langsung.
 async fn broadcast_ai(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<AiLog>,
@@ -136,14 +142,14 @@ async fn broadcast_ai(
     Json(serde_json::json!({ "status": "broadcasted", "type": "ai_log" }))
 }
 
-/// Endpoint for the Dashboard to trigger manual watering.
+/// Endpoint bagi Dashboard untuk memicu penyiraman manual.
 async fn manual_water(Json(payload): Json<WaterCommand>) -> WebResult<impl IntoResponse> {
     tracing::info!(plant = %payload.plant_name, "Remote watering triggered via web");
     crate::hardware::water_plant(&payload.plant_name, 3).await;
     Ok(Json(serde_json::json!({ "status": "executed", "plant": payload.plant_name })))
 }
 
-/// Returns historical sensor data for a plant.
+/// Mengembalikan data sensor historis untuk sebuah tanaman.
 async fn get_history(
     axum::extract::State(state): axum::extract::State<AppState>,
     Path(plant_name): Path<String>,
@@ -160,7 +166,7 @@ async fn get_history(
     Ok(Json(serde_json::json!({ "plant_name": plant_name, "hours": hours, "data": data })))
 }
 
-/// Exports historical sensor data as a CSV file.
+/// Mengekspor data sensor historis sebagai file CSV.
 async fn export_history(
     axum::extract::State(state): axum::extract::State<AppState>,
     Path(plant_name): Path<String>,
@@ -214,37 +220,30 @@ async fn export_history(
     }
 }
 
-/// Permanently deletes a plant and its sensor data.
+/// Menghapus tanaman dan data sensornya secara permanen.
 async fn delete_plant(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<DeleteCommand>,
 ) -> WebResult<impl IntoResponse> {
     tracing::info!(plant = %payload.plant_name, "Delete requested via web");
-    if state.db.delete_plant(&payload.plant_name).await? {
-        Ok(Json(serde_json::json!({ "status": "deleted", "plant": payload.plant_name })))
-    } else {
-        Err(AppError::NotFound(format!("Plant '{}' not found", payload.plant_name)))
-    }
+    state.db.delete_plant(&payload.plant_name).await?;
+    Ok(Json(serde_json::json!({ "status": "deleted", "plant": payload.plant_name })))
 }
 
-/// Endpoint for the Dashboard to update plant-specific health thresholds.
+/// Endpoint bagi Dashboard untuk memperbarui ambang batas kesehatan tanaman.
 async fn update_settings(
     axum::extract::State(state): axum::extract::State<AppState>,
     Json(payload): Json<SettingsCommand>,
 ) -> WebResult<impl IntoResponse> {
     tracing::info!(plant = %payload.plant_name, "Updating settings via web");
-    if state
+    state
         .db
         .update_plant_settings(&payload.plant_name, payload.min_moisture, payload.water_ml)
-        .await?
-    {
-        Ok(Json(serde_json::json!({ "status": "updated", "plant": payload.plant_name })))
-    } else {
-        Err(AppError::NotFound(format!("Plant '{}' not found", payload.plant_name)))
-    }
+        .await?;
+    Ok(Json(serde_json::json!({ "status": "updated", "plant": payload.plant_name })))
 }
 
-/// Upgrades a connection to a WebSocket for real-time streaming.
+/// Meningkatkan koneksi ke WebSocket untuk streaming real-time.
 async fn ws_handler(
     ws: WebSocketUpgrade,
     axum::extract::State(state): axum::extract::State<AppState>,

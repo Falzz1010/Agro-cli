@@ -14,7 +14,7 @@ use agrocli::hardware::{read_humidity, read_soil_moisture, read_temperature, wat
 use agrocli::telegram::{run_bot as start_telegram_bot, send_telegram_alert, process_alert_queue};
 use agrocli::web::serve as start_web_server;
 
-/// Checks if the 'q' key has been pressed in a non-blocking way.
+/// Memeriksa apakah tombol 'q' ditekan secara non-blocking.
 fn should_exit() -> bool {
     if event::poll(Duration::from_millis(10)).unwrap_or(false) {
         match event::read() {
@@ -37,7 +37,7 @@ const BANNER: &str = r"
    â•šâ•â•  â•šâ•â• â•šâ•â•â•â•â•â• â•šâ•â•  â•šâ•â• â•šâ•â•â•â•â•â•  â•šâ•â•â•â•â•â•â•šâ•â•â•â•â•â•â•â•šâ•â•
 ";
 
-/// Displays the `AgroCLI` ASCII banner and version info.
+/// Menampilkan banner ASCII `AgroCLI` dan informasi versi.
 fn display_banner() {
     println!("{}", BANNER.bright_green());
     println!(
@@ -163,7 +163,7 @@ async fn main() -> Result<()> {
                 .active_plants()
                 .await
                 .context("Failed to get plants")?;
-            let tasks = calculate_today_tasks(&active_plants, None, None);
+            let tasks = calculate_today_tasks(&active_plants, None, None).await;
 
             if tasks.is_empty() {
                 println!("âœ¨ All caught up! No tasks needed today.");
@@ -217,7 +217,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-/// Runs the TUI in a loop, re-entering after external operations.
+/// Menjalankan TUI dalam loop, masuk kembali setelah operasi eksternal.
 async fn run_tui_loop(state: agrocli::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
     match agrocli::tui::run_tui(state, cancel_token.clone()).await? {
         agrocli::tui::ExitSignal::Quit => {
@@ -228,7 +228,7 @@ async fn run_tui_loop(state: agrocli::web::AppState, cancel_token: &Cancellation
     Ok(())
 }
 
-/// Helper function to run the daemon loop directly.
+/// Fungsi pembantu untuk menjalankan loop daemon secara langsung.
 async fn run_daemon_direct(state: agrocli::web::AppState, cancel_token: &CancellationToken) -> Result<()> {
     
     info!("AgroCLI Daemon Activated.");
@@ -276,13 +276,16 @@ async fn run_daemon_direct(state: agrocli::web::AppState, cancel_token: &Cancell
         // IoT Reliability: Retry logic for weather API (Layer 3 constraint)
         let mut weather_info = None;
         for attempt in 1..=3 {
-            if let Some(w) = weather(&city, &api_key).await {
-                weather_info = Some(w);
-                break;
+            match weather(&city, &api_key).await {
+                Ok(w) => {
+                    weather_info = Some(w);
+                    break;
+                }
+                Err(e) => {
+                    warn!("Weather API attempt {} failed: {}", attempt, e);
+                    sleep(Duration::from_secs(attempt * 2)).await;
+                }
             }
-            
-            warn!("Weather API attempt {} failed, retrying...", attempt);
-            sleep(Duration::from_secs(attempt * 2)).await;
         }
 
         let weather_cond = weather_info.as_ref().map(|(cond, _)| Arc::new(cond.clone()));
@@ -316,7 +319,7 @@ async fn run_daemon_direct(state: agrocli::web::AppState, cancel_token: &Cancell
     Ok(())
 }
 
-/// Helper function to run the web server directly.
+/// Fungsi pembantu untuk menjalankan server web secara langsung.
 async fn run_web_direct(
     state: agrocli::web::AppState,
     cancel_token: &CancellationToken,
@@ -353,6 +356,7 @@ async fn run_web_direct(
     Ok(())
 }
 
+/// Memproses otomatisasi untuk satu tanaman.
 #[instrument(skip(state))]
 async fn process_plant_automation(
     plant: agrocli::core::Plant,
@@ -379,9 +383,9 @@ async fn process_plant_automation(
 
     let tasks = calculate_today_tasks(
         std::slice::from_ref(&plant),
-        weather_cond.as_deref().map(|s| s.as_str()),
+        weather_cond.as_deref().map(String::as_str),
         Some(moisture),
-    );
+    ).await;
 
     if !tasks.is_empty() && tasks[0].needs_water {
         let alert_msg = format!("ðŸš¨ *{name}*: Moisture LOW ({moisture:.1}%). Triggering pump!");

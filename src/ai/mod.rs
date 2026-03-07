@@ -89,7 +89,7 @@ pub struct Candidate {
     pub content: Content,
 }
 
-/// Helper to broadcast AI logs to the web dashboard.
+/// Pembantu untuk menyiarkan log AI ke dashboard web.
 fn broadcast_ai_log(state: &crate::web::AppState, query: &str, response: &str) {
     let _ = state.tx.send(crate::web::DashboardMessage::AiLog(crate::web::AiLog {
         timestamp: chrono::Local::now().format("%H:%M:%S").to_string(),
@@ -98,7 +98,11 @@ fn broadcast_ai_log(state: &crate::web::AppState, query: &str, response: &str) {
     }));
 }
 
-/// Entry point for the AI Agent interactive chat mode.
+/// Titik masuk untuk mode chat interaktif AI Agent.
+///
+/// # Errors
+///
+/// Mengembalikan kesalahan jika input terminal gagal atau sistem AI tidak dapat diinisialisasi.
 pub async fn run_agent_mode(state: std::sync::Arc<crate::web::AppState>) -> Result<()> {
     let db = &state.db;
     // Clear screen and show banner

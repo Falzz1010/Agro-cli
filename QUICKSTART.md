@@ -1,16 +1,16 @@
-# ⚡ Quick Start Guide - AgroCLI Edge
+# ⚡ Panduan Memulai Cepat - AgroCLI Edge
 
-## 🎯 Goal
-In 5 minutes, you'll have a high-performance smart farming system running:
-- **Rust Core**: Ultra-fast sensor processing.
-- **Axum Web**: Premium real-time dashboard.
-- **AI Agent**: Intelligent garden brain.
+## 🎯 Tujuan
+Dalam 5 menit, Anda akan memiliki sistem pertanian pintar berperforma tinggi yang berjalan:
+- **Inti Rust**: Pemrosesan sensor sangat cepat.
+- **Web Axum**: Dashboard waktu nyata premium.
+- **AI Agent**: Otak kebun yang cerdas.
 
-## 📋 Prerequisites
+## 📋 Prasyarat
 - [Rust & Cargo](https://rustup.rs/) (v1.75+)
-- Git installed.
+- Git terinstal.
 
-## 🚀 5-Minute Setup
+## 🚀 Pengaturan 5 Menit
 
 ### 1️⃣ Clone & Build
 ```bash
@@ -19,43 +19,43 @@ cd AgroCLI
 cargo build --release
 ```
 
-### 2️⃣ Initialize Garden
+### 2️⃣ Inisialisasi Kebun
 ```bash
 cargo run -- init
 ```
-*This creates your local `data/garden.db` and prepares the schema.*
+*Ini akan membuat `data/garden.db` lokal Anda dan menyiapkan skema.*
 
-### 3️⃣ Add Your First Plant
+### 3️⃣ Tambahkan Tanaman Pertama Anda
 ```bash
-cargo run -- add tomato "My-Tomato"
+cargo run -- add tomato "Tomat-Saya"
 ```
 
-### 4️⃣ Launch the Engine (Terminal 1)
+### 4️⃣ Jalankan Mesin (Terminal 1)
 ```bash
 cargo run -- serve
 ```
-*This starts the **Web Server**, **WebSocket Hub**, and **Automation Daemon** all at once.*
+*Ini akan memulai **Server Web**, **Hub WebSocket**, dan **Daemon Otomatisasi** sekaligus.*
 
-**✅ Checkpoint:** Open `http://localhost:8001` in your browser.
+**✅ Titik Pemeriksaan:** Buka `http://localhost:8001` di browser Anda.
 
-### 5️⃣ Launch the Interactive TUI (Terminal 2)
+### 5️⃣ Jalankan TUI Interaktif (Terminal 2)
 ```bash
 cargo run -- interactive
 ```
-*Beautiful terminal interface for local monitoring.*
+*Antarmuka terminal yang indah untuk pemantauan lokal.*
 
 ---
 
-## 🧪 Quick Test
+## 🧪 Uji Cepat
 
-1. **Dashboard Check**: Go to the web dashboard. You should see "My-Tomato" appearing.
-2. **AI Inquiry**: Type `ai-agent` command or use the AI feed on the dashboard to ask: "Bagaimana kondisi tomat saya?"
-3. **Manual Water**: Click the "💧 Trigger Pump" button on the dashboard. Watch the logs in Terminal 1 for activation.
+1. **Pemeriksaan Dashboard**: Buka dashboard web. Anda seharusnya melihat "Tomat-Saya" muncul.
+2. **Pertanyaan AI**: Ketik perintah `ai-agent` atau gunakan feed AI di dashboard untuk bertanya: "Bagaimana kondisi tomat saya?"
+3. **Siram Manual**: Klik tombol "💧 Trigger Pump" di dashboard. Perhatikan log di Terminal 1 untuk aktivasi.
 
-## 🔧 Pro Configuration
-- **Care Rules**: Edit `plants.yaml` to change moisture thresholds.
-- **AI Brain**: Add your `GEMINI_API_KEY` to `.env` for full intelligence.
-- **Access**: Access from your phone via `http://[your-ip]:8001`.
+## 🔧 Konfigurasi Pro
+- **Aturan Perawatan**: Edit `plants.yaml` untuk mengubah ambang batas kelembaban.
+- **Otak AI**: Tambahkan `GEMINI_API_KEY` Anda ke `.env` untuk kecerdasan penuh.
+- **Akses**: Akses dari ponsel Anda via `http://[ip-anda]:8001`.
 
 ---
-**Happy Farming! 🌱**
+**Selamat Bertani! 🌱**

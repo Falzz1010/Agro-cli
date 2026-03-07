@@ -1,10 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
 
-/// Simulates reading soil moisture from a physical sensor.
+/// Simulasi membaca tingkat kelembaban tanah dari sensor fisik.
 ///
-/// Returns a moisture level between 30.0% and 70.0%.
+/// Mengembalikan tingkat kelembaban antara 30.0% dan 70.0%.
 #[allow(clippy::cast_precision_loss)]
+#[must_use]
 pub fn read_soil_moisture(_plant_name: &str) -> f32 {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -14,10 +15,11 @@ pub fn read_soil_moisture(_plant_name: &str) -> f32 {
     30.0 + (nanos % 40) as f32
 }
 
-/// Simulates reading ambient temperature from a physical sensor.
+/// Simulasi membaca suhu ambien dari sensor fisik.
 ///
-/// Returns temperature in Celsius between 24.0 and 28.0.
+/// Mengembalikan suhu dalam Celsius antara 24.0 dan 28.0.
 #[allow(clippy::cast_precision_loss)]
+#[must_use]
 pub fn read_temperature() -> f32 {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -27,10 +29,11 @@ pub fn read_temperature() -> f32 {
     24.0 + (nanos % 5) as f32
 }
 
-/// Simulates reading ambient humidity from a physical sensor.
+/// Simulasi membaca kelembaban ambien dari sensor fisik.
 ///
-/// Returns humidity percentage between 60.0 and 80.0.
+/// Mengembalikan persentase kelembaban antara 60.0 dan 80.0.
 #[allow(clippy::cast_precision_loss)]
+#[must_use]
 pub fn read_humidity() -> f32 {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -40,13 +43,13 @@ pub fn read_humidity() -> f32 {
     60.0 + (nanos % 21) as f32
 }
 
-/// Activates a physical water pump for a specified duration.
+/// Mengaktifkan pompa air fisik untuk durasi tertentu.
 ///
-/// This is an asynchronous simulation of a hardware action.
+/// Ini adalah simulasi asinkron dari tindakan perangkat keras.
 ///
-/// # Arguments
-/// * `name` - The nickname of the plant to water.
-/// * `duration_seconds` - How long to keep the pump active.
+/// # Argumen
+/// * `name` - Nama panggilan tanaman yang akan disiram.
+/// * `duration_seconds` - Berapa lama pompa tetap aktif.
 pub async fn water_plant(name: &str, duration_seconds: u64) {
     println!(
         "🚿 [HARDWARE] Activating pump for {name} ({duration_seconds}s)..."

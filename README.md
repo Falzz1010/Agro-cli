@@ -1,6 +1,6 @@
-# 🌱 AgroCLI Edge - Smart Farming IoT Platform
+# 🌱 AgroCLI Edge - Platform IoT Pertanian Pintar
 
-> Self-hosted intelligent garden management system with real-time monitoring and automation. Now fully rewritten in **Rust** for maximum performance and reliability.
+> Sistem manajemen kebun cerdas yang dihosting sendiri dengan pemantauan dan otomatisasi waktu nyata. Sekarang sepenuhnya ditulis ulang dalam **Rust** untuk performa dan keandalan maksimal.
 
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Axum](https://img.shields.io/badge/Axum-0.7-blue.svg)](https://github.com/tokio-rs/axum)
@@ -8,89 +8,89 @@
 [![Ratatui](https://img.shields.io/badge/Ratatui-0.26-green.svg)](https://ratatui.rs/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## ✨ Core Features
+## ✨ Fitur Utama
 
-### 🌐 Premium Web Dashboard (v1.3.0)
-- **Full Mobile Responsiveness** - Premium glassmorphic design that adapt to phone, tablet, and desktop.
-- **AI Agent Interaction Feed** - Real-time stream of what your garden brain is thinking and doing.
-- **Interactive Charts** - Moisture, Temp, and Humidity trends with high-performance rendering.
-- **Sensor History & Export** - View historical data up to 7 days and export directly to CSV.
-- **Manual Control** - Trigger watering and update plant thresholds remotely.
-- **Secure Access** - Basic authentication protected endpoints.
+### 🌐 Dashboard Web Premium (v1.3.0)
+- **Responsivitas Seluler Penuh** - Desain glassmorphic premium yang menyesuaikan dengan ponsel, tablet, dan desktop.
+- **Feed Interaksi AI Agent** - Aliran waktu nyata tentang apa yang dipikirkan dan dilakukan oleh "otak" kebun Anda.
+- **Grafik Interaktif** - Tren Kelembaban, Suhu, dan Kelembaban udara dengan rendering performa tinggi.
+- **Riwayat Sensor & Ekspor** - Lihat data historis hingga 7 hari dan ekspor langsung ke CSV.
+- **Kontrol Manual** - Memicu penyiraman dan memperbarui ambang batas tanaman secara jarak jauh.
+- **Akses Aman** - Endpoint yang dilindungi oleh autentikasi dasar (basic authentication).
 
-### 🤖 AI Agent Mode
-- **Multimodal AI Support** - Powered by Google Gemini (Flash/Pro) for intelligent decision making.
-- **Natural Language Control** - Control your garden with natural language (Indonesian/English).
-- **Tool-Calling Capabilities** - AI can directly query the database and trigger hardware via `water_plant_action`.
-- **Simulation Mode** - Test AI logic safely without an API key.
+### 🤖 Mode AI Agent
+- **Dukungan AI Multimodal** - Didukung oleh Google Gemini (Flash/Pro) untuk pengambilan keputusan cerdas.
+- **Kontrol Bahasa Alami** - Kontrol kebun Anda dengan bahasa alami (Bahasa Indonesia/Inggris).
+- **Kemampuan Tool-Calling** - AI dapat langsung menanyakan database dan memicu perangkat keras melalui `water_plant_action`.
+- **Mode Simulasi** - Uji logika AI dengan aman tanpa kunci API.
 
-### 🔌 IoT & Performance Layer
-- **High-Performance Rust Core** - Optimized async engine using `tokio` and `axum`.
-- **Direct Async Broadcasting** - Zero-latency internal communication between modules via specialized channels.
-- **Daemon Mode** - 24/7 automated monitoring, weather checking, and failsafe protection.
-- **SQLite Persistence** - Reliable local data storage with `sqlx`.
-- **Ratatui TUI** - Polished terminal interface for quick management and monitoring.
+### 🔌 Lapisan IoT & Performa
+- **Inti Rust Performa Tinggi** - Mesin asinkron yang dioptimalkan menggunakan `tokio` dan `axum`.
+- **Penyiaran Asinkron Langsung** - Komunikasi internal nol latensi antar modul melalui saluran khusus.
+- **Mode Daemon** - Pemantauan otomatis 24/7, pengecekan cuaca, dan perlindungan kegagalan (failsafe).
+- **Persistensi SQLite** - Penyimpanan data lokal yang andal dengan `sqlx`.
+- **Ratatui TUI** - Antarmuka terminal yang apik untuk manajemen dan pemantauan cepat.
 
-## 🚀 Quick Start
+## 🚀 Memulai Cepat
 
-### Prerequisites
+### Prasyarat
 - [Rust & Cargo](https://rustup.rs/) (v1.75+)
 - [SQLite](https://www.sqlite.org/)
 
-### Installation
+### Instalasi
 ```bash
-# Clone repository
+# Clone repositori
 git clone https://github.com/yourusername/AgroCLI.git
 cd AgroCLI
 
-# Build the project
+# Build proyek
 cargo build --release
 
-# Initialize garden (first time only)
+# Inisialisasi kebun (hanya pertama kali)
 cargo run -- init
 ```
 
-### Usage
+### Penggunaan
 
-**Terminal 1 - Web Dashboard & Logic Engine:**
+**Terminal 1 - Dashboard Web & Mesin Logika:**
 ```bash
-# Starts the server and daemon logic
+# Memulai server dan logika daemon
 cargo run -- serve
 ```
 
-**Terminal 2 - Interactive Interface (TUI):**
+**Terminal 2 - Antarmuka Interaktif (TUI):**
 ```bash
-# Polished terminal dashboard
+# Dashboard terminal yang apik
 cargo run -- interactive
 ```
 
-**Terminal 3 - AI Agent (Optional):**
+**Terminal 3 - AI Agent (Opsional):**
 ```bash
-# Direct natural language chat
+# Chat bahasa alami langsung
 cargo run -- ai-agent
 ```
 
-## 📚 Documentation
+## 📚 Dokumentasi
 
-- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide.
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Internal data flow and async patterns.
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - REST & WebSocket API details.
-- **[AI_PROVIDER_GUIDE.md](AI_PROVIDER_GUIDE.md)** - Configuring Gemini and other AI models.
+- **[QUICKSTART.md](QUICKSTART.md)** - Panduan pengaturan 5 menit.
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Aliran data internal dan pola asinkron.
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Detail API REST & WebSocket.
+- **[AI_PROVIDER_GUIDE.md](AI_PROVIDER_GUIDE.md)** - Mengonfigurasi Gemini dan model AI lainnya.
 
-## 🔧 Configuration
+## 🔧 Konfigurasi
 
-All secrets and server settings are managed via `.env`:
+Semua rahasia dan pengaturan server dikelola melalui `.env`:
 ```bash
 PORT=8001
-GEMINI_API_KEY=your_key_here
+GEMINI_API_KEY=kunci_anda_di_sini
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your_password
+ADMIN_PASSWORD=kata_sandi_anda
 ```
 
-## 👨‍💻 Author
+## 👨‍💻 Penulis
 
-**AgroCLI Team**
-Made with 💚 and **Rust** for smart farming enthusiasts.
+**Tim AgroCLI**
+Dibuat dengan 💚 dan **Rust** untuk para penggemar pertanian pintar.
 
 ---
-**Happy Farming! 🌱**
+**Selamat Bertani! 🌱**

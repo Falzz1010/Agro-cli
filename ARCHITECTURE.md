@@ -1,78 +1,78 @@
-# 🏗️ AgroCLI Edge - High-Performance Smart Farming Architecture
+# 🏗️ AgroCLI Edge - Arsitektur Pertanian Pintar Performa Tinggi
 
-## 📊 System Overview
+## 📊 Ikhtisar Sistem
 
-AgroCLI Edge is a distributed smart farming hub built entirely in **Rust**. It utilizes high-performance asynchronous patterns to manage sensor data, automation, and real-time visualization with minimal resource overhead.
+AgroCLI Edge adalah hub pertanian pintar terdistribusi yang dibangun sepenuhnya dengan **Rust**. Sistem ini menggunakan pola asinkron performa tinggi untuk mengelola data sensor, otomatisasi, dan visualisasi waktu nyata dengan overhead sumber daya minimal.
 
 ```mermaid
 graph TD
-    User["👤 User (TUI/Web)"] --> Hub["🌐 Axum Web Server"]
-    Hub --> WS["🔌 WebSocket Hub"]
+    User["👤 Pengguna (TUI/Web)"] --> Hub["🌐 Server Web Axum"]
+    Hub --> WS["🔌 Hub WebSocket"]
     
-    subgraph "Core Engine (Tokio)"
-        Daemon["🤖 Automation Daemon"]
+    subgraph "Inti Mesin (Tokio)"
+        Daemon["🤖 Daemon Otomatisasi"]
         AI["🤖 AI Agent (Gemini)"]
         DB["🗄️ SQLite (sqlx)"]
     end
     
-    Daemon <--> |Direct Async Channels| AI
-    Daemon <--> |Direct Async Channels| Hub
+    Daemon <--> |Saluran Asinkron Langsung| AI
+    Daemon <--> |Saluran Asinkron Langsung| Hub
     
-    Daemon --> HW["🔌 Hardware Layer"]
-    HW --> Sensors["🌡️ Sensors (I2C/MQTT)"]
-    HW --> Actuators["💧 Water Pumps"]
+    Daemon --> HW["🔌 Lapisan Perangkat Keras"]
+    HW --> Sensors["🌡️ Sensor (I2C/MQTT)"]
+    HW --> Actuators["💧 Pompa Air"]
     
-    Sensors -.-> |Real-time Stream| WS
+    Sensors -.-> |Aliran Waktu Nyata| WS
 ```
 
-## 🔄 High-Performance Data Flow
+## 🔄 Aliran Data Performa Tinggi
 
-Unlike traditional IoT systems that rely on overhead-heavy HTTP requests for internal communication, AgroCLI Edge uses **Tokio Broadcast Channels**.
+Berbeda dengan sistem IoT tradisional yang mengandalkan permintaan HTTP yang berat untuk komunikasi internal, AgroCLI Edge menggunakan **Saluran Broadcast Tokio**.
 
-### 1. Zero-Latency Sensor Streaming
-1. **Daemon** reads hardware sensors every 5 seconds.
-2. Data is injected into a **shared memory channel** (`broadcast::Sender`).
-3. **Web Server** and **AI Agent** subscribe directly to this channel.
-4. Updates appear on the dashboard in <100ms.
+### 1. Streaming Sensor Tanpa Latensi
+1. **Daemon** membaca sensor perangkat keras setiap 5 detik.
+2. Data dimasukkan ke dalam **saluran memori bersama** (`broadcast::Sender`).
+3. **Server Web** dan **AI Agent** berlangganan langsung ke saluran ini.
+4. Pembaruan muncul di dashboard dalam waktu <100ms.
 
-### 2. Intelligent AI Tool-Calling
-1. **AI Agent** receives a natural language query.
-2. AI decides to use the `get_garden_status` tool.
-3. The Agent executes a direct database query via `sqlx`.
-4. If action is needed (e.g., "Water the plant"), AI triggers `water_plant_action`.
+### 2. Tool-Calling AI yang Cerdas
+1. **AI Agent** menerima kueri bahasa alami.
+2. AI memutuskan untuk menggunakan alat `get_garden_status`.
+3. Agent mengeksekusi kueri database langsung melalui `sqlx`.
+4. Jika tindakan diperlukan (misalnya, "Siram tanaman"), AI memicu `water_plant_action`.
 
-## 📁 Modular Project Structure
+## 📁 Struktur Proyek Modular
 
-The project is organized into highly decoupled modules:
+Proyek ini diabstraksikan ke dalam modul-modul yang saling terlepas:
 
-- `src/main.rs`: High-level orchestrator and CLI entry points.
-- `src/core/`: Business logic, care rules, and task calculation.
-- `src/db/`: Asynchronous SQLite interactions using `sqlx`.
-- `src/hardware/`: Abstraction layer for sensors and actuators.
-- `src/web/`: Axum server providing REST APIs and WebSocket hub.
-- `src/ai/`: Gemini-powered autonomous agent logic and tool-calling.
-- `src/tui/`: Ratatui-based high-performance terminal dashboard.
+- `src/main.rs`: Orkesrator tingkat tinggi dan titik masuk CLI.
+- `src/core/`: Logika bisnis, aturan perawatan, dan kalkulasi tugas.
+- `src/db/`: Interaksi SQLite asinkron menggunakan `sqlx`.
+- `src/hardware/`: Lapisan abstraksi untuk sensor dan aktuator.
+- `src/web/`: Server Axum yang menyediakan API REST dan hub WebSocket.
+- `src/ai/`: Logika agen otonom bertenaga Gemini dan tool-calling.
+- `src/tui/`: Dashboard terminal performa tinggi berbasis Ratatui.
 
-## 🗄️ Reliable Persistence
+## 🗄️ Persistensi yang Andal
 
-We use **SQLite** with efficient indexing to handle long-term sensor history.
+Kami menggunakan **SQLite** dengan pengindeksan efisien untuk menangani riwayat sensor jangka panjang.
 
-- **`plants` table**: Stores plant profiles and custom thresholds.
-- **`sensor_logs` table**: Optimized for time-series data storage.
-- **`ai_logs` table**: Persistent record of AI decisions and interactions.
+- **Tabel `plants`**: Menyimpan profil tanaman dan ambang batas kustom.
+- **Tabel `sensor_logs`**: Dioptimalkan untuk penyimpanan data deret waktu (time-series).
+- **Tabel `ai_logs`**: Catatan persisten tentang keputusan dan interaksi AI.
 
-## 🔐 Security & Failsafes
+## 🔐 Keamanan & Fail-safe
 
-- **Authentication**: Basic Auth for sensitive endpoints (Dashboard/API).
-- **Environment**: All secrets managed via encrypted `.env`.
-- **Pump Failsafe**: Software-based lock if moisture doesn't rise after 5 consecutive pumps to prevent flooding.
-- **Async Safety**: Use of `CancellationToken` for graceful shutdowns.
+- **Autentikasi**: Basic Auth untuk endpoint sensitif (Dashboard/API).
+- **Lingkungan**: Semua rahasia dikelola melalui file `.env` yang terenkripsi.
+- **Fail-safe Pompa**: Kunci berbasis perangkat lunak jika kelembaban tidak naik setelah 5 kali penyiraman berturut-turut untuk mencegah banjir.
+- **Keamanan Asinkron**: Penggunaan `CancellationToken` untuk penghentian sistem yang aman (graceful shutdown).
 
-## 🔄 Future Scalability
+## 🔄 Skalabilitas Masa Depan
 
-- **Phase 4**: Advanced machine learning for predictive evaporation modeling.
-- **Phase 5**: Multi-node support for large-scale greenhouse management.
-- **Phase 6**: P2P data synchronization between multiple AgroCLI Edge instances.
+- **Fase 4**: Pembelajaran mesin tingkat lanjut untuk pemodelan penguapan prediktif.
+- **Fase 5**: Dukungan multi-node untuk manajemen rumah kaca skala besar.
+- **Fase 6**: Sinkronisasi data P2P antar beberapa instance AgroCLI Edge.
 
 ---
-**High Performance. Zero Latency. Smart Farming.**
+**Performa Tinggi. Tanpa Latensi. Pertanian Pintar.**

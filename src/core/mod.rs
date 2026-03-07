@@ -1,35 +1,37 @@
 use std::collections::HashMap;
-use std::fs;
+use tokio::fs;
 use std::path::Path;
 
 use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tracing::error;
 
 const RULES_PATH: &str = "plants.yaml";
 
-/// Errors that can occur in the core logic.
+/// Kesalahan yang dapat terjadi pada logika inti.
 #[derive(Debug, Error)]
 pub enum CoreError {
-    /// Error when reading the rules file.
-    #[error("failed to read rules file: {0}")]
+    /// Kesalahan saat membaca file aturan.
+    #[error("gagal membaca file aturan: {0}")]
     ReadError(#[from] std::io::Error),
-    /// Error when parsing the rules YAML.
-    #[error("failed to parse rules YAML: {0}")]
+    /// Kesalahan saat mengurai YAML aturan.
+    #[error("gagal mengurai YAML aturan: {0}")]
     ParseError(#[from] serde_yaml::Error),
 }
 
-/// Represents a type of plant care action.
+/// Mewakili jenis tindakan perawatan tanaman.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CareType {
-    /// Watering the plant.
+    /// Menyiram tanaman.
     Water,
-    /// Fertilizing the plant.
+    /// Memupuk tanaman.
     Fertilizer,
 }
 
 impl CareType {
-    /// Returns the database column name for this care type.
+    /// Mengembalikan nama kolom database untuk jenis perawatan ini.
+    #[must_use]
     pub fn column_name(self) -> &'static str {
         match self {
             CareType::Water => "last_watered",
@@ -38,107 +40,124 @@ impl CareType {
     }
 }
 
-/// Fetches the current weather condition and temperature for a city.
+/// Mengambil kondisi cuaca dan suhu saat ini untuk sebuah kota.
 ///
-/// Returns `Some((condition, temp))` on success.
-pub async fn weather(city: &str, api_key: &str) -> Option<(String, f32)> {
+/// # Errors
+///
+/// Mengembalikan kesalahan jika permintaan jaringan gagal, API key tidak valid, atau isi respons cacat.
+pub async fn weather(city: &str, api_key: &str) -> anyhow::Result<(String, f32)> {
     let url = format!(
         "http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
     );
 
-    let response = reqwest::get(&url).await.ok()?;
+    let response = reqwest::get(&url).await?;
     if response.status().is_success() {
-        let json: serde_json::Value = response.json().await.ok()?;
-        let weather = json["weather"][0]["main"].as_str()?.to_string();
+        let json: serde_json::Value = response.json().await?;
+        let weather = json["weather"][0]["main"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("Missing weather main field"))?
+            .to_string();
         #[allow(clippy::cast_possible_truncation)]
-        let temp = json["main"]["temp"].as_f64()? as f32;
-        Some((weather, temp))
+        let temp = json["main"]["temp"]
+            .as_f64()
+            .ok_or_else(|| anyhow::anyhow!("Missing temperature field"))? as f32;
+        Ok((weather, temp))
     } else {
-        None
+        let status = response.status();
+        let body = response.text().await.unwrap_or_default();
+        Err(anyhow::anyhow!("Weather API error {status}: {body}"))
     }
 }
 
-/// Defines the care requirements for a specific plant type.
+/// Menentukan persyaratan perawatan untuk jenis tanaman tertentu.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlantRule {
-    /// Recommended interval between waterings in days.
+    /// Interval yang disarankan antara penyiraman dalam hari.
     pub water_interval_days: Option<i64>,
-    /// Recommended interval between fertilizing in days.
+    /// Interval yang disarankan antara pemupukan dalam hari.
     pub fertilizer_interval_days: Option<i64>,
-    /// Amount of water in milliliters.
+    /// Jumlah air dalam mililiter.
     pub water_ml: Option<i32>,
-    /// Recommended hours of sunlight.
+    /// Jam sinar matahari yang disarankan.
     pub sun_hours: Option<i32>,
-    /// Minimum soil moisture level (0-100%).
+    /// Tingkat kelembaban tanah minimum (0-100%).
     pub min_moisture_level: Option<f32>,
 }
 
-/// Represents a single plant in the garden.
+/// Mewakili satu tanaman di taman.
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
 #[allow(clippy::struct_field_names)]
 pub struct Plant {
-    /// Unique nickname of the plant.
+    /// Nama panggilan unik tanaman.
     pub name: String,
-    /// The type of plant (must match a key in `plants.yaml`).
+    /// Jenis tanaman (harus sesuai dengan kunci di `plants.yaml`).
     pub plant_type: String,
-    /// The date the plant was added to the garden.
+    /// Tanggal tanaman ditambahkan ke taman.
     pub planted_date: String,
-    /// The date the plant was last watered.
+    /// Tanggal terakhir tanaman disiram.
     pub last_watered: String,
-    /// The date the plant was last fertilized.
+    /// Tanggal terakhir tanaman dipupuk.
     pub last_fertilized: String,
-    /// Custom minimum moisture level.
+    /// Tingkat kelembaban minimum kustom.
     pub min_moisture: Option<f32>,
-    /// Custom water amount in ml.
+    /// Jumlah air kustom dalam ml.
     pub water_ml: Option<i32>,
 }
 
-/// A specific care task generated for a plant.
+/// Tugas perawatan spesifik yang dihasilkan untuk tanaman.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GardenTask {
-    /// Nickname of the plant.
+    /// Nama panggilan tanaman.
     pub name: String,
-    /// The type of plant.
+    /// Jenis tanaman.
     pub plant_type: String,
-    /// Whether the plant needs watering.
+    /// Apakah tanaman perlu disiram.
     pub needs_water: bool,
-    /// Whether watering was skipped due to rain.
+    /// Apakah penyiraman dilewati karena hujan.
     pub skip_watering_due_to_weather: bool,
-    /// Amount of water needed in milliliters.
+    /// Jumlah air yang dibutuhkan dalam mililiter.
     pub water_ml: i32,
-    /// Whether the plant needs fertilizer.
+    /// Apakah tanaman perlu dipupuk.
     pub needs_fertilizer: bool,
-    /// Required sunlight for the day.
+    /// Sinar matahari yang dibutuhkan untuk hari ini.
     pub sun_hours: i32,
 }
 
-/// Loads the plant care rules from the `plants.yaml` file.
-pub fn load_rules() -> Result<HashMap<String, PlantRule>, CoreError> {
+/// Memuat aturan perawatan tanaman dari file `plants.yaml`.
+///
+/// # Errors
+///
+/// Mengembalikan kesalahan jika file ada tetapi tidak dapat dibaca atau diurai sebagai YAML yang valid.
+pub async fn load_rules() -> Result<HashMap<String, PlantRule>, CoreError> {
     if !Path::new(RULES_PATH).exists() {
         return Ok(HashMap::new());
     }
 
-    let content = fs::read_to_string(RULES_PATH)?;
+    let content = fs::read_to_string(RULES_PATH).await?;
     let rules: HashMap<String, PlantRule> = serde_yaml::from_str(&content)?;
     Ok(rules)
 }
 
-/// Calculates the care tasks needed for today based on plant state and weather.
+/// Menghitung tugas perawatan yang diperlukan untuk hari ini berdasarkan status tanaman dan cuaca.
 ///
-/// # Arguments
-/// * `active_plants` - A slice of currently active plants to evaluate.
-/// * `weather_condition` - Optional current weather condition (e.g., "Rain").
-/// * `real_time_moisture` - Optional current soil moisture reading.
+/// # Argumen
+/// * `active_plants` - Slice tanaman aktif yang akan dievaluasi.
+/// * `weather_condition` - Kondisi cuaca saat ini yang opsional (misalnya, "Rain").
+/// * `real_time_moisture` - Pembacaan kelembaban tanah saat ini yang opsional.
 ///
 /// # Returns
-/// A vector of `GardenTask` objects representing actions required today.
-pub fn calculate_today_tasks(
+/// Vektor objek `GardenTask` yang mewakili tindakan yang diperlukan hari ini.
+pub async fn calculate_today_tasks(
     active_plants: &[Plant],
     weather_condition: Option<&str>,
     real_time_moisture: Option<f32>,
 ) -> Vec<GardenTask> {
-    let Ok(rules) = load_rules() else {
-        return Vec::new();
+    let rules = match load_rules().await {
+        Ok(r) => r,
+        Err(e) => {
+            error!("Failed to load plant rules: {e}");
+            return Vec::new();
+        }
     };
 
     let mut tasks = Vec::new();
@@ -232,25 +251,25 @@ mod tests {
         }
     }
 
-    #[test]
-    fn calculate_today_tasks_returns_empty_when_no_plants() {
-        let tasks = calculate_today_tasks(&[], None, None);
+    #[tokio::test]
+    async fn calculate_today_tasks_returns_empty_when_no_plants() {
+        let tasks = calculate_today_tasks(&[], None, None).await;
         assert!(tasks.is_empty(), "Expected no tasks for empty plant list");
     }
 
-    #[test]
-    fn calculate_today_tasks_returns_empty_for_unknown_plant_type() {
+    #[tokio::test]
+    async fn calculate_today_tasks_returns_empty_for_unknown_plant_type() {
         let plants = vec![make_plant("TestPlant", "unknown_type_xyz")];
-        let tasks = calculate_today_tasks(&plants, None, None);
+        let tasks = calculate_today_tasks(&plants, None, None).await;
         assert!(
             tasks.is_empty(),
             "Expected no tasks for unknown plant type"
         );
     }
 
-    #[test]
-    fn load_rules_returns_ok() {
-        let result = load_rules();
+    #[tokio::test]
+    async fn load_rules_returns_ok() {
+        let result = load_rules().await;
         assert!(result.is_ok(), "load_rules should not error");
     }
 

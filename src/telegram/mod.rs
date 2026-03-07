@@ -30,6 +30,11 @@ pub enum Command {
     Help,
 }
 
+/// Memulai listener bot Telegram.
+///
+/// # Errors
+///
+/// Mengembalikan kesalahan jika `TELEGRAM_BOT_TOKEN` tidak ada atau bot gagal dimulai.
 pub async fn run_bot(db: Arc<Database>, ct: CancellationToken) -> Result<()> {
     let token = env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN not set")?;
     let bot = Bot::new(token);
@@ -125,7 +130,9 @@ async fn callback_handler(
             d if d.starts_with("water:") => {
                 let plant_name = &d[6..];
                 water_plant(plant_name, 3).await;
-                let _ = db.update_care(plant_name, crate::core::CareType::Water).await;
+                if let Err(e) = db.update_care(plant_name, crate::core::CareType::Water).await {
+                    info!("Failed to update care record for {}: {}", plant_name, e);
+                }
 
                 bot.answer_callback_query(q.id.clone())
                     .text(format!("🚿 Watering {plant_name}..."))
@@ -153,7 +160,13 @@ async fn send_status_report(
     chat_id: ChatId,
     db: &Arc<Database>,
 ) -> Result<(), teloxide::RequestError> {
-    let plants = db.active_plants().await.unwrap_or_default();
+    let plants = match db.active_plants().await {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::error!("Failed to fetch plants for report: {}", e);
+            Vec::new()
+        }
+    };
     if plants.is_empty() {
         bot.send_message(chat_id, "🪴 Your garden is empty.")
             .await?;
@@ -197,7 +210,7 @@ async fn send_weather_info(bot: &Bot, chat_id: ChatId) -> Result<(), teloxide::R
     }
 
     match crate::core::weather(&city, &api_key).await {
-        Some((cond, temp)) => {
+        Ok((cond, temp)) => {
             let icon = match cond.to_lowercase().as_str() {
                 c if c.contains("rain") => "🌧",
                 c if c.contains("cloud") => "☁️",
@@ -213,8 +226,8 @@ async fn send_weather_info(bot: &Bot, chat_id: ChatId) -> Result<(), teloxide::R
             .parse_mode(ParseMode::Html)
             .await?;
         }
-        None => {
-            bot.send_message(chat_id, "❌ Failed to fetch weather data.")
+        Err(e) => {
+            bot.send_message(chat_id, format!("❌ Failed to fetch weather data: {e}"))
                 .await?;
         }
     }
@@ -251,6 +264,11 @@ async fn send_watering_menu(
     Ok(())
 }
 
+/// Mengirim pesan peringatan ke chat Telegram.
+///
+/// # Errors
+///
+/// Mengembalikan kesalahan jika peringatan gagal dikirim dan tidak dapat dimasukkan ke antrean di database.
 pub async fn send_telegram_alert(db: &Database, message: &str) -> Result<()> {
     let token = env::var("TELEGRAM_BOT_TOKEN");
     let chat_id = env::var("TELEGRAM_CHAT_ID");
@@ -299,7 +317,13 @@ pub async fn send_telegram_alert(db: &Database, message: &str) -> Result<()> {
 /// Background task to process the pending alert queue.
 pub async fn process_alert_queue(db: Arc<Database>) {
     loop {
-        let alerts = db.pending_alerts().await.unwrap_or_default();
+        let alerts = match db.pending_alerts().await {
+            Ok(a) => a,
+            Err(e) => {
+                tracing::error!("Failed to fetch pending alerts: {}", e);
+                Vec::new()
+            }
+        };
         if !alerts.is_empty() {
             info!("Processing {} pending alerts...", alerts.len());
             for (id, msg) in alerts {

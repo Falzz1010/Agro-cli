@@ -4,25 +4,32 @@ use thiserror::Error;
 
 use crate::core::{CareType, Plant};
 
-/// Errors that can occur during database operations.
+/// Kesalahan yang dapat terjadi selama operasi database.
 #[derive(Debug, Error)]
 pub enum DbError {
-    /// Error from the underlying `SQLx` pool or query.
-    #[error("database query failed: {0}")]
+    /// Kesalahan dari pool `SQLx` atau kueri yang mendasarinya.
+    #[error("kegagalan kueri basis data: {0}")]
     Sqlx(#[from] sqlx::Error),
+    /// Kesalahan saat tanaman tidak ditemukan.
+    #[error("tanaman '{0}' tidak ditemukan")]
+    PlantNotFound(String),
 }
 
-/// Handles all persistence logic for the `AgroCLI` garden.
+/// Menangani semua logika persistensi untuk taman `AgroCLI`.
 #[derive(Clone)]
 pub struct Database {
     pool: Pool<Sqlite>,
 }
 
 impl Database {
-    /// Creates a new Database instance and connects to the `SQLite` pool.
+    /// Membuat instance Database baru dan terhubung ke pool `SQLite`.
     ///
-    /// # Arguments
-    /// * `database_url` - The connection string for the `SQLite` database.
+    /// # Argumen
+    /// * `database_url` - String koneksi untuk basis data `SQLite`.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika koneksi gagal atau URL tidak valid.
     pub async fn new(database_url: &str) -> Result<Self, DbError> {
         use std::str::FromStr;
         let options = sqlx::sqlite::SqliteConnectOptions::from_str(database_url)?
@@ -36,7 +43,11 @@ impl Database {
         Ok(Self { pool })
     }
 
-    /// Initializes the database tables if they do not exist.
+    /// Menginisialisasi tabel database jika belum ada.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika pembuatan tabel atau indeks gagal.
     pub async fn init(&self) -> Result<(), DbError> {
         // Core table
         sqlx::query(
@@ -110,8 +121,12 @@ impl Database {
         Ok(())
     }
 
-    /// Adds a new plant to the garden. Returns `true` if successful,
-    /// or `false` if a plant with the same name already exists.
+    /// Menambahkan tanaman baru ke taman. Mengembalikan `true` jika berhasil,
+    /// atau `false` jika tanaman dengan nama yang sama sudah ada.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika penyisipan basis data gagal.
     pub async fn add_plant(&self, plant_type: &str, name: &str) -> Result<bool, DbError> {
         let today = Utc::now().format("%Y-%m-%d").to_string();
         let result = sqlx::query(
@@ -139,7 +154,11 @@ impl Database {
         }
     }
 
-    /// Retrieves all plants currently marked as 'active'.
+    /// Mengambil semua tanaman yang saat ini ditandai sebagai 'active'.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri basis data gagal.
     pub async fn active_plants(&self) -> Result<Vec<Plant>, DbError> {
         let rows = sqlx::query_as::<_, Plant>(
             "SELECT name, plant_type, planted_date, last_watered, last_fertilized, min_moisture, water_ml 
@@ -151,8 +170,12 @@ impl Database {
         Ok(rows)
     }
 
-    /// Updates the `last_watered` or `last_fertilized` date for a plant.
-    pub async fn update_care(&self, name: &str, care_type: CareType) -> Result<bool, DbError> {
+    /// Memperbarui tanggal `last_watered` atau `last_fertilized` untuk sebuah tanaman.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError::PlantNotFound` jika tanaman tidak aktif, atau `DbError::Sqlx` untuk kegagalan kueri lainnya.
+    pub async fn update_care(&self, name: &str, care_type: CareType) -> Result<(), DbError> {
         let today = Utc::now().format("%Y-%m-%d").to_string();
         let query = format!(
             "UPDATE plants SET {} = ? WHERE name = ? AND status = 'active'",
@@ -165,10 +188,17 @@ impl Database {
             .execute(&self.pool)
             .await?;
 
-        Ok(result.rows_affected() > 0)
+        if result.rows_affected() == 0 {
+            return Err(DbError::PlantNotFound(name.to_string()));
+        }
+        Ok(())
     }
 
-    /// Returns a summary of garden statistics.
+    /// Mengembalikan ringkasan statistik taman.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri agregasi gagal.
     pub async fn garden_stats(&self) -> Result<serde_json::Value, DbError> {
         let active_count: i32 =
             sqlx::query_scalar("SELECT COUNT(*) FROM plants WHERE status = 'active'")
@@ -186,7 +216,11 @@ impl Database {
         }))
     }
 
-    /// Logs a set of sensor readings to the database.
+    /// Mencatat serangkaian pembacaan sensor ke basis data.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika penyisipan gagal.
     pub async fn log_sensor_data(
         &self,
         plant_name: &str,
@@ -209,36 +243,56 @@ impl Database {
         Ok(())
     }
 
-    /// Marks a plant as harvested (archived).
-    pub async fn harvest_plant(&self, name: &str) -> Result<bool, DbError> {
+    /// Menandai tanaman sebagai dipanen (diarsipkan).
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError::PlantNotFound` jika tanaman tidak aktif, atau `DbError::Sqlx` untuk kegagalan kueri lainnya.
+    pub async fn harvest_plant(&self, name: &str) -> Result<(), DbError> {
         let result = sqlx::query(
             "UPDATE plants SET status = 'harvested' WHERE name = ? AND status = 'active'",
         )
-        .bind(name)
-        .execute(&self.pool)
-        .await?;
-        Ok(result.rows_affected() > 0)
+            .bind(name)
+            .execute(&self.pool)
+            .await?;
+        
+        if result.rows_affected() == 0 {
+            return Err(DbError::PlantNotFound(name.to_string()));
+        }
+        Ok(())
     }
 
-    /// Updates custom settings for a plant.
+    /// Memperbarui pengaturan kustom untuk sebuah tanaman.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError::PlantNotFound` jika tanaman tidak aktif, atau `DbError::Sqlx` untuk kegagalan kueri lainnya.
     pub async fn update_plant_settings(
         &self,
         name: &str,
         min_moisture: f32,
         water_ml: i32,
-    ) -> Result<bool, DbError> {
+    ) -> Result<(), DbError> {
         let result = sqlx::query(
             "UPDATE plants SET min_moisture = ?, water_ml = ? WHERE name = ? AND status = 'active'",
         )
-        .bind(min_moisture)
-        .bind(water_ml)
-        .bind(name)
-        .execute(&self.pool)
-        .await?;
-        Ok(result.rows_affected() > 0)
+            .bind(min_moisture)
+            .bind(water_ml)
+            .bind(name)
+            .execute(&self.pool)
+            .await?;
+        
+        if result.rows_affected() == 0 {
+            return Err(DbError::PlantNotFound(name.to_string()));
+        }
+        Ok(())
     }
 
-    /// Retrieves the most recent sensor reading for each active plant.
+    /// Mengambil pembacaan sensor terbaru untuk setiap tanaman yang aktif.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri join gagal.
     #[allow(clippy::cast_possible_truncation)]
     pub async fn latest_sensor_data(&self) -> Result<Vec<crate::web::SensorData>, DbError> {
         // This query gets the latest log for each plant that is currently active.
@@ -299,7 +353,11 @@ impl Database {
         Ok(data)
     }
 
-    /// Logs an AI interaction.
+    /// Mencatat interaksi AI.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika penyisipan gagal.
     #[allow(dead_code)]
     pub async fn log_ai_interaction(&self, query: &str, response: &str) -> Result<(), DbError> {
         let now = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -312,7 +370,11 @@ impl Database {
         Ok(())
     }
 
-    /// Retrieves recent AI logs.
+    /// Mengambil log AI terbaru.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri gagal.
     #[allow(dead_code)]
     pub async fn recent_ai_logs(&self, limit: i32) -> Result<Vec<crate::web::AiLog>, DbError> {
         let rows = sqlx::query(
@@ -342,11 +404,15 @@ impl Database {
         Ok(logs)
     }
 
-    /// Retrieves historical sensor data for a specific plant.
+    /// Mengambil data sensor historis untuk tanaman tertentu.
     ///
-    /// # Arguments
-    /// * `plant_name` - The name of the plant to query.
-    /// * `hours` - Number of hours of history to fetch (e.g., 24 for 1 day, 168 for 7 days).
+    /// # Argumen
+    /// * `plant_name` - Nama tanaman yang akan dikueri.
+    /// * `hours` - Jumlah jam riwayat yang akan diambil (misalnya, 24 untuk 1 hari, 168 untuk 7 hari).
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri gagal.
     #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
     pub async fn sensor_history(
         &self,
@@ -404,10 +470,12 @@ impl Database {
         Ok(data)
     }
 
-    /// Permanently deletes a plant and all its associated sensor logs.
+    /// Menghapus tanaman dan semua log sensor terkait secara permanen.
     ///
-    /// Returns `true` if the plant was found and deleted.
-    pub async fn delete_plant(&self, name: &str) -> Result<bool, DbError> {
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError::PlantNotFound` jika tanaman tidak ada, atau `DbError::Sqlx` untuk kegagalan lainnya.
+    pub async fn delete_plant(&self, name: &str) -> Result<(), DbError> {
         // Delete sensor logs first (referential cleanup)
         sqlx::query("DELETE FROM sensor_logs WHERE plant_name = ?")
             .bind(name)
@@ -419,12 +487,19 @@ impl Database {
             .execute(&self.pool)
             .await?;
 
-        Ok(result.rows_affected() > 0)
+        if result.rows_affected() == 0 {
+            return Err(DbError::PlantNotFound(name.to_string()));
+        }
+        Ok(())
     }
 
     // ── IoT Reliability: Alert Queueing ──────────────────────────────
 
-    /// Queues an alert for later delivery.
+    /// Mengantrekan peringatan untuk pengiriman nanti.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika penyisipan gagal.
     pub async fn queue_alert(&self, message: &str) -> Result<(), DbError> {
         let now = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
         sqlx::query("INSERT INTO pending_alerts (timestamp, message) VALUES (?, ?)")
@@ -435,7 +510,11 @@ impl Database {
         Ok(())
     }
 
-    /// Retrieves all pending alerts.
+    /// Mengambil semua peringatan yang tertunda.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika kueri gagal.
     pub async fn pending_alerts(&self) -> Result<Vec<(i64, String)>, DbError> {
         use sqlx::Row;
         let rows = sqlx::query("SELECT id, message FROM pending_alerts ORDER BY id ASC")
@@ -449,7 +528,11 @@ impl Database {
         Ok(alerts)
     }
 
-    /// Deletes a pending alert after successful delivery.
+    /// Menghapus peringatan yang tertunda setelah berhasil dikirim.
+    ///
+    /// # Errors
+    ///
+    /// Mengembalikan `DbError` jika penghapusan gagal.
     pub async fn delete_alert(&self, id: i64) -> Result<(), DbError> {
         sqlx::query("DELETE FROM pending_alerts WHERE id = ?")
             .bind(id)
